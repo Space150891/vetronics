@@ -25,7 +25,7 @@ export const buttonVariants = cva(
 );
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof buttonVariants> & { loading?: boolean; disabledReason?: string; icon?: LucideIcon };
+  VariantProps<typeof buttonVariants> & { loading?: boolean | undefined; disabledReason?: string | undefined; icon?: LucideIcon };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, loading, disabled, disabledReason, icon: Icon, children, ...props }, ref) => {
@@ -98,7 +98,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTML
 );
 Textarea.displayName = "Textarea";
 
-export function Field({ label, htmlFor, error, hint, children }: { label: string; htmlFor: string; error?: string; hint?: string; children: React.ReactNode }) {
+export function Field({ label, htmlFor, error, hint, children }: { label: string; htmlFor: string; error?: string | undefined; hint?: string | undefined; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <label htmlFor={htmlFor} className="text-[13px] font-semibold text-foreground">
@@ -118,7 +118,7 @@ export function Field({ label, htmlFor, error, hint, children }: { label: string
 export function Card({ className, ...p }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("rounded-xl border bg-card text-card-foreground shadow-card", className)} {...p} />;
 }
-export function CardHeader({ title, sub, action }: { title: string; sub?: string; action?: React.ReactNode }) {
+export function CardHeader({ title, sub, action }: { title: string; sub?: string | undefined; action?: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 border-b px-4 py-3">
       <div className="min-w-0">
@@ -139,7 +139,7 @@ const toneCls: Record<Tone, string> = {
   teal: "bg-st-teal-bg text-st-teal border-st-teal/25",
   neutral: "bg-st-neutral-bg text-st-neutral border-st-neutral/20",
 };
-export function Badge({ tone = "neutral", icon: Icon, children, className }: { tone?: Tone; icon?: LucideIcon; children: React.ReactNode; className?: string }) {
+export function Badge({ tone = "neutral", icon: Icon, children, className }: { tone?: Tone | undefined; icon?: LucideIcon | undefined; children: React.ReactNode; className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-xs font-semibold", toneCls[tone], className)}>
       {Icon && <Icon className="size-3.5" aria-hidden />}
@@ -167,7 +167,7 @@ export function StatusBadge({ status }: { status: Status }) {
 }
 
 /* ---------- Tabs (segmented, Itera-style) ---------- */
-export function Tabs<T extends string>({ value, onChange, items, label }: { value: T; onChange: (v: T) => void; items: { value: T; label: string; count?: number; icon?: LucideIcon }[]; label: string }) {
+export function Tabs<T extends string>({ value, onChange, items, label }: { value: T; onChange: (v: T) => void; items: { value: T; label: string; count?: number | undefined; icon?: LucideIcon }[]; label: string }) {
   return (
     <div role="tablist" aria-label={label} className="flex flex-wrap gap-2">
       {items.map((it) => {
@@ -201,15 +201,15 @@ export function Table({ children, className }: { children: React.ReactNode; clas
     </div>
   );
 }
-export function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
+export function Th({ children, className }: { children?: React.ReactNode | undefined; className?: string }) {
   return <th className={cn("border-b bg-surface px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground", className)}>{children}</th>;
 }
-export function Td({ children, className }: { children?: React.ReactNode; className?: string }) {
+export function Td({ children, className }: { children?: React.ReactNode | undefined; className?: string }) {
   return <td className={cn("border-b px-3 py-2 align-middle", className)}>{children}</td>;
 }
 
 /* ---------- Empty state ---------- */
-export function EmptyState({ icon: Icon, title, body, action }: { icon: LucideIcon; title: string; body?: string; action?: React.ReactNode }) {
+export function EmptyState({ icon: Icon, title, body, action }: { icon: LucideIcon; title: string; body?: string | undefined; action?: React.ReactNode }) {
   return (
     <div className="m-4 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-6 py-10 text-center">
       <Icon className="size-6 text-muted-foreground" aria-hidden />
@@ -225,10 +225,10 @@ export function Drawer({ open, onOpenChange, title, sub, children, footer, retur
   open: boolean;
   onOpenChange: (o: boolean) => void;
   title: string;
-  sub?: React.ReactNode;
+  sub?: React.ReactNode | undefined;
   children: React.ReactNode;
-  footer?: React.ReactNode;
-  returnFocusRef?: React.RefObject<HTMLElement | null>;
+  footer?: React.ReactNode | undefined;
+  returnFocusRef?: React.RefObject<HTMLElement | null> | undefined;
 }) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -263,7 +263,7 @@ export function Drawer({ open, onOpenChange, title, sub, children, footer, retur
 }
 
 /* ---------- Page header ---------- */
-export function PageHeader({ title, sub, actions }: { title: string; sub?: React.ReactNode; actions?: React.ReactNode }) {
+export function PageHeader({ title, sub, actions }: { title: string; sub?: React.ReactNode | undefined; actions?: React.ReactNode }) {
   return (
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">

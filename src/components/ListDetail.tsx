@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export interface Column<T> {
   label: string;
   render: (row: T) => ReactNode;
-  className?: string;
+  className?: string | undefined;
 }
 
 export function ListDetailPage<T extends { id: string }>({
@@ -14,7 +14,7 @@ export function ListDetailPage<T extends { id: string }>({
 }: {
   title: string;
   sub: string;
-  actions?: ReactNode;
+  actions?: ReactNode | undefined;
   rows: T[];
   columns: Column<T>[];
   search: (row: T) => string;
