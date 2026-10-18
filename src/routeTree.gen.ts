@@ -10,33 +10,167 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AddOnsRouteImport } from './routes/add-ons'
+import { Route as AppointmentsRouteImport } from './routes/appointments'
+import { Route as BillingRouteImport } from './routes/billing'
+import { Route as CarePlansRouteImport } from './routes/care-plans'
+import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as PatientSchedulingRouteImport } from './routes/patient-scheduling'
+import { Route as PatientsRouteImport } from './routes/patients'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as StaffRouteImport } from './routes/staff'
+import { Route as StaffSchedulingRouteImport } from './routes/staff-scheduling'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AddOnsRoute = AddOnsRouteImport.update({
+  id: '/add-ons',
+  path: '/add-ons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppointmentsRoute = AppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarePlansRoute = CarePlansRouteImport.update({
+  id: '/care-plans',
+  path: '/care-plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatientSchedulingRoute = PatientSchedulingRouteImport.update({
+  id: '/patient-scheduling',
+  path: '/patient-scheduling',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatientsRoute = PatientsRouteImport.update({
+  id: '/patients',
+  path: '/patients',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffRoute = StaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffSchedulingRoute = StaffSchedulingRouteImport.update({
+  id: '/staff-scheduling',
+  path: '/staff-scheduling',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/add-ons': typeof AddOnsRoute
+  '/appointments': typeof AppointmentsRoute
+  '/billing': typeof BillingRoute
+  '/care-plans': typeof CarePlansRoute
+  '/messages': typeof MessagesRoute
+  '/patient-scheduling': typeof PatientSchedulingRoute
+  '/patients': typeof PatientsRoute
+  '/settings': typeof SettingsRoute
+  '/staff': typeof StaffRoute
+  '/staff-scheduling': typeof StaffSchedulingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/add-ons': typeof AddOnsRoute
+  '/appointments': typeof AppointmentsRoute
+  '/billing': typeof BillingRoute
+  '/care-plans': typeof CarePlansRoute
+  '/messages': typeof MessagesRoute
+  '/patient-scheduling': typeof PatientSchedulingRoute
+  '/patients': typeof PatientsRoute
+  '/settings': typeof SettingsRoute
+  '/staff': typeof StaffRoute
+  '/staff-scheduling': typeof StaffSchedulingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/add-ons': typeof AddOnsRoute
+  '/appointments': typeof AppointmentsRoute
+  '/billing': typeof BillingRoute
+  '/care-plans': typeof CarePlansRoute
+  '/messages': typeof MessagesRoute
+  '/patient-scheduling': typeof PatientSchedulingRoute
+  '/patients': typeof PatientsRoute
+  '/settings': typeof SettingsRoute
+  '/staff': typeof StaffRoute
+  '/staff-scheduling': typeof StaffSchedulingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/add-ons'
+    | '/appointments'
+    | '/billing'
+    | '/care-plans'
+    | '/messages'
+    | '/patient-scheduling'
+    | '/patients'
+    | '/settings'
+    | '/staff'
+    | '/staff-scheduling'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/add-ons'
+    | '/appointments'
+    | '/billing'
+    | '/care-plans'
+    | '/messages'
+    | '/patient-scheduling'
+    | '/patients'
+    | '/settings'
+    | '/staff'
+    | '/staff-scheduling'
+  id:
+    | '__root__'
+    | '/'
+    | '/add-ons'
+    | '/appointments'
+    | '/billing'
+    | '/care-plans'
+    | '/messages'
+    | '/patient-scheduling'
+    | '/patients'
+    | '/settings'
+    | '/staff'
+    | '/staff-scheduling'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AddOnsRoute: typeof AddOnsRoute
+  AppointmentsRoute: typeof AppointmentsRoute
+  BillingRoute: typeof BillingRoute
+  CarePlansRoute: typeof CarePlansRoute
+  MessagesRoute: typeof MessagesRoute
+  PatientSchedulingRoute: typeof PatientSchedulingRoute
+  PatientsRoute: typeof PatientsRoute
+  SettingsRoute: typeof SettingsRoute
+  StaffRoute: typeof StaffRoute
+  StaffSchedulingRoute: typeof StaffSchedulingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +182,91 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/add-ons': {
+      id: '/add-ons'
+      path: '/add-ons'
+      fullPath: '/add-ons'
+      preLoaderRoute: typeof AddOnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/appointments': {
+      id: '/appointments'
+      path: '/appointments'
+      fullPath: '/appointments'
+      preLoaderRoute: typeof AppointmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/care-plans': {
+      id: '/care-plans'
+      path: '/care-plans'
+      fullPath: '/care-plans'
+      preLoaderRoute: typeof CarePlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patient-scheduling': {
+      id: '/patient-scheduling'
+      path: '/patient-scheduling'
+      fullPath: '/patient-scheduling'
+      preLoaderRoute: typeof PatientSchedulingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patients': {
+      id: '/patients'
+      path: '/patients'
+      fullPath: '/patients'
+      preLoaderRoute: typeof PatientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff': {
+      id: '/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff-scheduling': {
+      id: '/staff-scheduling'
+      path: '/staff-scheduling'
+      fullPath: '/staff-scheduling'
+      preLoaderRoute: typeof StaffSchedulingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AddOnsRoute: AddOnsRoute,
+  AppointmentsRoute: AppointmentsRoute,
+  BillingRoute: BillingRoute,
+  CarePlansRoute: CarePlansRoute,
+  MessagesRoute: MessagesRoute,
+  PatientSchedulingRoute: PatientSchedulingRoute,
+  PatientsRoute: PatientsRoute,
+  SettingsRoute: SettingsRoute,
+  StaffRoute: StaffRoute,
+  StaffSchedulingRoute: StaffSchedulingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
