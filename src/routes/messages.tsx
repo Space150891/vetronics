@@ -3,8 +3,9 @@ import { useState } from "react";
 import { Send } from "lucide-react";
 import { headFor } from "@/components/ListDetail";
 import { Badge, Button, Card, PageHeader, SearchInput, Textarea } from "@/components/kit";
-import { PATIENTS, pick } from "@/lib/fixtures";
-import { sendChat, useStore } from "@/lib/store";
+import { pick } from "@/lib/fixtures";
+import { CONVERSATIONS, UNREAD_SEED } from "@/lib/patient-data";
+import { sendChat, setDraft, useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/messages")({
@@ -12,21 +13,17 @@ export const Route = createFileRoute("/messages")({
   component: Page,
 });
 
-const SUBJECTS = ["Appointment reschedule", "Form question", "Parking information", "Billing question", "Refill request routing", "Directions"];
-const CONVS = PATIENTS.slice(0, 8).map((p, i) => ({
-  id: `c${i}`, patient: p.name, subject: pick(SUBJECTS, i), unread: i < 2,
-  seed: [{ id: `s${i}`, from: "patient" as const, text: `Hello, I have a question about: ${pick(SUBJECTS, i).toLowerCase()}.`, at: "" }],
-}));
+const CONVS = CONVERSATIONS;
 
 function Page() {
   const chats = useStore((s) => s.chats);
   const [sel, setSel] = useState(pick(CONVS, 0).id);
   const [q, setQ] = useState("");
-  const [draft, setDraft] = useState("");
+  const draft = useStore((s) => s.drafts[`staff:${sel}`] ?? "");
   const conv = CONVS.find((c) => c.id === sel)!;
   const msgs = [...conv.seed, ...(chats[sel] ?? [])];
   const list = CONVS.filter((c) => `${c.patient} ${c.subject}`.toLowerCase().includes(q.toLowerCase()));
-  const send = () => { if (draft.trim()) { sendChat(sel, draft); setDraft(""); } };
+  const send = () => { if (draft.trim()) sendChat(sel, draft, "staff"); };
   return (
     <div className="mx-auto max-w-[1440px]">
       <PageHeader title="Messages" sub="Conversations with patients. Messages stay on this device in the prototype." />
@@ -37,7 +34,7 @@ function Page() {
             {list.map((c) => (
               <li key={c.id}>
                 <button onClick={() => setSel(c.id)} aria-current={sel === c.id} className={cn("w-full border-b px-4 py-3 text-left focus-ring hover:bg-muted", sel === c.id && "bg-accent shadow-[inset_3px_0_0_var(--color-primary)]")}>
-                  <span className="flex items-center justify-between gap-2"><span className="font-semibold">{c.patient}</span>{c.unread && !chats[c.id] && <Badge tone="info">New</Badge>}</span>
+                  <span className="flex items-center justify-between gap-2"><span className="font-semibold">{c.patient}</span>{!UNREAD_SEED.has(c.id) && !chats[c.id] && <Badge tone="info">New</Badge>}</span>
                   <span className="block truncate text-[13px] text-muted-foreground">{c.subject}</span>
                 </button>
               </li>
@@ -52,7 +49,7 @@ function Page() {
             ))}
           </div>
           <div className="flex items-end gap-2 border-t p-3">
-            <Textarea aria-label="Reply" className="min-h-10" placeholder="Write a reply…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} />
+            <Textarea aria-label="Reply" className="min-h-10" placeholder="Write a reply…" value={draft} onChange={(e) => setDraft(`staff:${sel}`, e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} />
             <Button icon={Send} onClick={send} disabled={!draft.trim()} disabledReason="Type a message first">Send</Button>
           </div>
         </Card>
