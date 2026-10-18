@@ -139,7 +139,7 @@ const toneCls: Record<Tone, string> = {
   teal: "bg-st-teal-bg text-st-teal border-st-teal/25",
   neutral: "bg-st-neutral-bg text-st-neutral border-st-neutral/20",
 };
-export function Badge({ tone = "neutral", icon: Icon, children, className }: { tone?: Tone | undefined; icon?: LucideIcon | undefined; children: React.ReactNode; className?: string }) {
+export function Badge({ tone = "neutral", icon: Icon, children, className }: { tone?: Tone | undefined; icon?: LucideIcon | undefined; children: React.ReactNode; className?: string | undefined }) {
   return (
     <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-xs font-semibold", toneCls[tone], className)}>
       {Icon && <Icon className="size-3.5" aria-hidden />}
@@ -194,17 +194,17 @@ export function Tabs<T extends string>({ value, onChange, items, label }: { valu
 }
 
 /* ---------- Table ---------- */
-export function Table({ children, className }: { children: React.ReactNode; className?: string }) {
+export function Table({ children, className }: { children: React.ReactNode; className?: string | undefined }) {
   return (
     <div className={cn("w-full overflow-x-auto", className)}>
       <table className="w-full border-collapse text-sm">{children}</table>
     </div>
   );
 }
-export function Th({ children, className }: { children?: React.ReactNode | undefined; className?: string }) {
+export function Th({ children, className }: { children?: React.ReactNode | undefined; className?: string | undefined }) {
   return <th className={cn("border-b bg-surface px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground", className)}>{children}</th>;
 }
-export function Td({ children, className }: { children?: React.ReactNode | undefined; className?: string }) {
+export function Td({ children, className }: { children?: React.ReactNode | undefined; className?: string | undefined }) {
   return <td className={cn("border-b px-3 py-2 align-middle", className)}>{children}</td>;
 }
 

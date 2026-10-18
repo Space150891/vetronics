@@ -55,8 +55,8 @@ export interface Appointment {
   type: string;
   room: string;
   status: Status;
-  arrivedAt?: string;
-  readyAt?: string;
+  arrivedAt?: string | undefined;
+  readyAt?: string | undefined;
   notes: Note[];
   history: HistoryItem[];
 }
