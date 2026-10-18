@@ -1,3 +1,4 @@
+import { BrandMark } from "./BrandMark";
 import { type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import * as DM from "@radix-ui/react-dropdown-menu";
@@ -28,10 +29,7 @@ export const NAV = [
 function Wordmark() {
   return (
     <div className="flex items-center gap-2.5">
-      <svg viewBox="0 0 32 32" className="size-8" aria-hidden>
-        <rect width="32" height="32" rx="8" className="fill-sidebar-primary" />
-        <path d="M8 9l8 15 8-15" fill="none" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" className="stroke-sidebar-primary-foreground" />
-      </svg>
+      <BrandMark tile className="size-8" />
       <span className="text-[19px] font-extrabold tracking-tight text-sidebar-accent-foreground">Vectronics</span>
     </div>
   );

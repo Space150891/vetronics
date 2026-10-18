@@ -1,3 +1,4 @@
+import { BrandMark } from "./BrandMark";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import * as DM from "@radix-ui/react-dropdown-menu";
@@ -11,11 +12,8 @@ import { CONVERSATIONS, ME, UNREAD_SEED } from "@/lib/patient-data";
 export function Logo({ className }: { className?: string | undefined }) {
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
-      <svg viewBox="0 0 32 32" className="size-7" aria-hidden>
-        <rect width="32" height="32" rx="8" className="fill-primary" />
-        <path d="M8 9l8 15 8-15" fill="none" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" className="stroke-primary-foreground" />
-      </svg>
-      <span className="text-[17px] font-extrabold tracking-tight">Vectronics</span>
+      <BrandMark className="h-6 w-auto" />
+      <span className="text-[18px] font-bold tracking-tight">Vectronics</span>
     </span>
   );
 }
