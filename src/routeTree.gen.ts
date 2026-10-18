@@ -14,12 +14,24 @@ import { Route as AddOnsRouteImport } from './routes/add-ons'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as CarePlansRouteImport } from './routes/care-plans'
+import { Route as InviteEmailRouteImport } from './routes/invite-email'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as PatientRouteImport } from './routes/patient'
 import { Route as PatientSchedulingRouteImport } from './routes/patient-scheduling'
 import { Route as PatientsRouteImport } from './routes/patients'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as StaffSchedulingRouteImport } from './routes/staff-scheduling'
+import { Route as PatientIndexRouteImport } from './routes/patient.index'
+import { Route as PatientAppointmentsRouteImport } from './routes/patient.appointments'
+import { Route as PatientBillsRouteImport } from './routes/patient.bills'
+import { Route as PatientChangePasswordRouteImport } from './routes/patient.change-password'
+import { Route as PatientDoctorsRouteImport } from './routes/patient.doctors'
+import { Route as PatientMessagesRouteImport } from './routes/patient.messages'
+import { Route as PatientNewPatientFormRouteImport } from './routes/patient.new-patient-form'
+import { Route as PatientProfileRouteImport } from './routes/patient.profile'
+import { Route as PatientRequestRouteImport } from './routes/patient.request'
+import { Route as PatientSignInRouteImport } from './routes/patient.sign-in'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,9 +58,19 @@ const CarePlansRoute = CarePlansRouteImport.update({
   path: '/care-plans',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteEmailRoute = InviteEmailRouteImport.update({
+  id: '/invite-email',
+  path: '/invite-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatientRoute = PatientRouteImport.update({
+  id: '/patient',
+  path: '/patient',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PatientSchedulingRoute = PatientSchedulingRouteImport.update({
@@ -76,6 +98,56 @@ const StaffSchedulingRoute = StaffSchedulingRouteImport.update({
   path: '/staff-scheduling',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PatientIndexRoute = PatientIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientAppointmentsRoute = PatientAppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientBillsRoute = PatientBillsRouteImport.update({
+  id: '/bills',
+  path: '/bills',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientChangePasswordRoute = PatientChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientDoctorsRoute = PatientDoctorsRouteImport.update({
+  id: '/doctors',
+  path: '/doctors',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientMessagesRoute = PatientMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientNewPatientFormRoute = PatientNewPatientFormRouteImport.update({
+  id: '/new-patient-form',
+  path: '/new-patient-form',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientProfileRoute = PatientProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientRequestRoute = PatientRequestRouteImport.update({
+  id: '/request',
+  path: '/request',
+  getParentRoute: () => PatientRoute,
+} as any)
+const PatientSignInRoute = PatientSignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => PatientRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -83,12 +155,24 @@ export interface FileRoutesByFullPath {
   '/appointments': typeof AppointmentsRoute
   '/billing': typeof BillingRoute
   '/care-plans': typeof CarePlansRoute
+  '/invite-email': typeof InviteEmailRoute
   '/messages': typeof MessagesRoute
+  '/patient': typeof PatientRouteWithChildren
   '/patient-scheduling': typeof PatientSchedulingRoute
   '/patients': typeof PatientsRoute
   '/settings': typeof SettingsRoute
   '/staff': typeof StaffRoute
   '/staff-scheduling': typeof StaffSchedulingRoute
+  '/patient/appointments': typeof PatientAppointmentsRoute
+  '/patient/bills': typeof PatientBillsRoute
+  '/patient/change-password': typeof PatientChangePasswordRoute
+  '/patient/doctors': typeof PatientDoctorsRoute
+  '/patient/messages': typeof PatientMessagesRoute
+  '/patient/new-patient-form': typeof PatientNewPatientFormRoute
+  '/patient/profile': typeof PatientProfileRoute
+  '/patient/request': typeof PatientRequestRoute
+  '/patient/sign-in': typeof PatientSignInRoute
+  '/patient/': typeof PatientIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,12 +180,23 @@ export interface FileRoutesByTo {
   '/appointments': typeof AppointmentsRoute
   '/billing': typeof BillingRoute
   '/care-plans': typeof CarePlansRoute
+  '/invite-email': typeof InviteEmailRoute
   '/messages': typeof MessagesRoute
   '/patient-scheduling': typeof PatientSchedulingRoute
   '/patients': typeof PatientsRoute
   '/settings': typeof SettingsRoute
   '/staff': typeof StaffRoute
   '/staff-scheduling': typeof StaffSchedulingRoute
+  '/patient/appointments': typeof PatientAppointmentsRoute
+  '/patient/bills': typeof PatientBillsRoute
+  '/patient/change-password': typeof PatientChangePasswordRoute
+  '/patient/doctors': typeof PatientDoctorsRoute
+  '/patient/messages': typeof PatientMessagesRoute
+  '/patient/new-patient-form': typeof PatientNewPatientFormRoute
+  '/patient/profile': typeof PatientProfileRoute
+  '/patient/request': typeof PatientRequestRoute
+  '/patient/sign-in': typeof PatientSignInRoute
+  '/patient': typeof PatientIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,12 +205,24 @@ export interface FileRoutesById {
   '/appointments': typeof AppointmentsRoute
   '/billing': typeof BillingRoute
   '/care-plans': typeof CarePlansRoute
+  '/invite-email': typeof InviteEmailRoute
   '/messages': typeof MessagesRoute
+  '/patient': typeof PatientRouteWithChildren
   '/patient-scheduling': typeof PatientSchedulingRoute
   '/patients': typeof PatientsRoute
   '/settings': typeof SettingsRoute
   '/staff': typeof StaffRoute
   '/staff-scheduling': typeof StaffSchedulingRoute
+  '/patient/appointments': typeof PatientAppointmentsRoute
+  '/patient/bills': typeof PatientBillsRoute
+  '/patient/change-password': typeof PatientChangePasswordRoute
+  '/patient/doctors': typeof PatientDoctorsRoute
+  '/patient/messages': typeof PatientMessagesRoute
+  '/patient/new-patient-form': typeof PatientNewPatientFormRoute
+  '/patient/profile': typeof PatientProfileRoute
+  '/patient/request': typeof PatientRequestRoute
+  '/patient/sign-in': typeof PatientSignInRoute
+  '/patient/': typeof PatientIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,12 +232,24 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/billing'
     | '/care-plans'
+    | '/invite-email'
     | '/messages'
+    | '/patient'
     | '/patient-scheduling'
     | '/patients'
     | '/settings'
     | '/staff'
     | '/staff-scheduling'
+    | '/patient/appointments'
+    | '/patient/bills'
+    | '/patient/change-password'
+    | '/patient/doctors'
+    | '/patient/messages'
+    | '/patient/new-patient-form'
+    | '/patient/profile'
+    | '/patient/request'
+    | '/patient/sign-in'
+    | '/patient/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -138,12 +257,23 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/billing'
     | '/care-plans'
+    | '/invite-email'
     | '/messages'
     | '/patient-scheduling'
     | '/patients'
     | '/settings'
     | '/staff'
     | '/staff-scheduling'
+    | '/patient/appointments'
+    | '/patient/bills'
+    | '/patient/change-password'
+    | '/patient/doctors'
+    | '/patient/messages'
+    | '/patient/new-patient-form'
+    | '/patient/profile'
+    | '/patient/request'
+    | '/patient/sign-in'
+    | '/patient'
   id:
     | '__root__'
     | '/'
@@ -151,12 +281,24 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/billing'
     | '/care-plans'
+    | '/invite-email'
     | '/messages'
+    | '/patient'
     | '/patient-scheduling'
     | '/patients'
     | '/settings'
     | '/staff'
     | '/staff-scheduling'
+    | '/patient/appointments'
+    | '/patient/bills'
+    | '/patient/change-password'
+    | '/patient/doctors'
+    | '/patient/messages'
+    | '/patient/new-patient-form'
+    | '/patient/profile'
+    | '/patient/request'
+    | '/patient/sign-in'
+    | '/patient/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,7 +307,9 @@ export interface RootRouteChildren {
   AppointmentsRoute: typeof AppointmentsRoute
   BillingRoute: typeof BillingRoute
   CarePlansRoute: typeof CarePlansRoute
+  InviteEmailRoute: typeof InviteEmailRoute
   MessagesRoute: typeof MessagesRoute
+  PatientRoute: typeof PatientRouteWithChildren
   PatientSchedulingRoute: typeof PatientSchedulingRoute
   PatientsRoute: typeof PatientsRoute
   SettingsRoute: typeof SettingsRoute
@@ -210,11 +354,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarePlansRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite-email': {
+      id: '/invite-email'
+      path: '/invite-email'
+      fullPath: '/invite-email'
+      preLoaderRoute: typeof InviteEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/messages': {
       id: '/messages'
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patient': {
+      id: '/patient'
+      path: '/patient'
+      fullPath: '/patient'
+      preLoaderRoute: typeof PatientRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/patient-scheduling': {
@@ -252,8 +410,107 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffSchedulingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/patient/': {
+      id: '/patient/'
+      path: '/'
+      fullPath: '/patient/'
+      preLoaderRoute: typeof PatientIndexRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/appointments': {
+      id: '/patient/appointments'
+      path: '/appointments'
+      fullPath: '/patient/appointments'
+      preLoaderRoute: typeof PatientAppointmentsRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/bills': {
+      id: '/patient/bills'
+      path: '/bills'
+      fullPath: '/patient/bills'
+      preLoaderRoute: typeof PatientBillsRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/change-password': {
+      id: '/patient/change-password'
+      path: '/change-password'
+      fullPath: '/patient/change-password'
+      preLoaderRoute: typeof PatientChangePasswordRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/doctors': {
+      id: '/patient/doctors'
+      path: '/doctors'
+      fullPath: '/patient/doctors'
+      preLoaderRoute: typeof PatientDoctorsRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/messages': {
+      id: '/patient/messages'
+      path: '/messages'
+      fullPath: '/patient/messages'
+      preLoaderRoute: typeof PatientMessagesRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/new-patient-form': {
+      id: '/patient/new-patient-form'
+      path: '/new-patient-form'
+      fullPath: '/patient/new-patient-form'
+      preLoaderRoute: typeof PatientNewPatientFormRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/profile': {
+      id: '/patient/profile'
+      path: '/profile'
+      fullPath: '/patient/profile'
+      preLoaderRoute: typeof PatientProfileRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/request': {
+      id: '/patient/request'
+      path: '/request'
+      fullPath: '/patient/request'
+      preLoaderRoute: typeof PatientRequestRouteImport
+      parentRoute: typeof PatientRoute
+    }
+    '/patient/sign-in': {
+      id: '/patient/sign-in'
+      path: '/sign-in'
+      fullPath: '/patient/sign-in'
+      preLoaderRoute: typeof PatientSignInRouteImport
+      parentRoute: typeof PatientRoute
+    }
   }
 }
+
+interface PatientRouteChildren {
+  PatientAppointmentsRoute: typeof PatientAppointmentsRoute
+  PatientBillsRoute: typeof PatientBillsRoute
+  PatientChangePasswordRoute: typeof PatientChangePasswordRoute
+  PatientDoctorsRoute: typeof PatientDoctorsRoute
+  PatientMessagesRoute: typeof PatientMessagesRoute
+  PatientNewPatientFormRoute: typeof PatientNewPatientFormRoute
+  PatientProfileRoute: typeof PatientProfileRoute
+  PatientRequestRoute: typeof PatientRequestRoute
+  PatientSignInRoute: typeof PatientSignInRoute
+  PatientIndexRoute: typeof PatientIndexRoute
+}
+
+const PatientRouteChildren: PatientRouteChildren = {
+  PatientAppointmentsRoute: PatientAppointmentsRoute,
+  PatientBillsRoute: PatientBillsRoute,
+  PatientChangePasswordRoute: PatientChangePasswordRoute,
+  PatientDoctorsRoute: PatientDoctorsRoute,
+  PatientMessagesRoute: PatientMessagesRoute,
+  PatientNewPatientFormRoute: PatientNewPatientFormRoute,
+  PatientProfileRoute: PatientProfileRoute,
+  PatientRequestRoute: PatientRequestRoute,
+  PatientSignInRoute: PatientSignInRoute,
+  PatientIndexRoute: PatientIndexRoute,
+}
+
+const PatientRouteWithChildren =
+  PatientRoute._addFileChildren(PatientRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -261,7 +518,9 @@ const rootRouteChildren: RootRouteChildren = {
   AppointmentsRoute: AppointmentsRoute,
   BillingRoute: BillingRoute,
   CarePlansRoute: CarePlansRoute,
+  InviteEmailRoute: InviteEmailRoute,
   MessagesRoute: MessagesRoute,
+  PatientRoute: PatientRouteWithChildren,
   PatientSchedulingRoute: PatientSchedulingRoute,
   PatientsRoute: PatientsRoute,
   SettingsRoute: SettingsRoute,

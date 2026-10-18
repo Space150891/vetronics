@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { nums } from "@/lib/fixtures";
 import { resetDemo, setTheme, useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { CONVERSATIONS, ME, UNREAD_SEED } from "@/lib/patient-data";
 
 export function Logo({ className }: { className?: string | undefined }) {
   return (
@@ -93,3 +94,9 @@ export function ListLink({ to, icon: Icon, title, sub, right, search }: { to: st
     </Link>
   );
 }
+
+export function useUnreadCount() {
+  const read = useStore((s) => s.readConvs);
+  return CONVERSATIONS.filter((c) => c.patientId === ME.id && UNREAD_SEED.has(c.id) && !read.includes(c.id)).length;
+}
+

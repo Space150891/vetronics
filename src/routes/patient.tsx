@@ -1,7 +1,6 @@
 import { Link, Navigate, Outlet, createFileRoute, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, Home, Loader2, MessageSquare, UserRound } from "lucide-react";
-import { Logo, ReviewMenu } from "@/components/patient-ui";
-import { CONVERSATIONS, ME, UNREAD_SEED } from "@/lib/patient-data";
+import { Logo, ReviewMenu, useUnreadCount } from "@/components/patient-ui";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -16,11 +15,6 @@ const TABS = [
   { to: "/patient/messages", label: "Messages", icon: MessageSquare },
   { to: "/patient/profile", label: "Profile", icon: UserRound },
 ] as const;
-
-export function useUnreadCount() {
-  const read = useStore((s) => s.readConvs);
-  return CONVERSATIONS.filter((c) => c.patientId === ME.id && UNREAD_SEED.has(c.id) && !read.includes(c.id)).length;
-}
 
 function PatientLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname }).replace(/\/$/, "") || "/patient";

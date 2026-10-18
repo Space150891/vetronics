@@ -2,12 +2,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { CalendarPlus, ChevronRight, ClipboardList, Clock, CreditCard, MapPin, MessageSquare, Search, UserRound } from "lucide-react";
 import { headFor } from "@/components/ListDetail";
 import { Badge, Card, buttonVariants } from "@/components/kit";
-import { ListLink, SectionTitle, fmtLongDate, fmtSlot } from "@/components/patient-ui";
+import { ListLink, SectionTitle, useUnreadCount, fmtLongDate, fmtSlot } from "@/components/patient-ui";
 import { isoDate, providerById } from "@/lib/fixtures";
 import { CLINIC, INVOICES, ME, balance, usd } from "@/lib/patient-data";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { useUnreadCount } from "./patient";
 
 export const Route = createFileRoute("/patient/")({
   head: headFor("Home", "Your next appointment, messages and bills at a glance."),
