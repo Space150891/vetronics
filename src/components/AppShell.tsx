@@ -1,13 +1,13 @@
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import * as DM from "@radix-ui/react-dropdown-menu";
 import {
   Bell, CalendarClock, CalendarDays, ChevronDown, ClipboardList, CreditCard, FileHeart, LayoutGrid,
-  MessageSquare, Moon, Puzzle, RotateCcw, Settings, Sun, UserCircle2, Users, UsersRound, CalendarRange, CheckCircle2,
+  MessageSquare, Mail, Moon, Puzzle, RotateCcw, Settings, Sun, UserCircle2, Users, UsersRound, CalendarRange, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CLINIC, CURRENT_USER } from "@/lib/fixtures";
-import { hydrateStore, resetDemo, setTheme, useStore } from "@/lib/store";
+import { resetDemo, setTheme, useStore } from "@/lib/store";
 import { Tip } from "./kit";
 import { toast } from "sonner";
 
@@ -40,7 +40,6 @@ function Wordmark() {
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const theme = useStore((s) => s.theme);
-  useEffect(() => hydrateStore(), []);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -113,11 +112,16 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <p className="text-xs text-muted-foreground">{CURRENT_USER.role} · {CLINIC.name}</p>
                   </div>
                   <DM.Separator className="my-1 h-px bg-border" />
-                  <DM.Label className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Prototype view</DM.Label>
-                  <DM.RadioGroup value="provider" className="mx-1 mb-1 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-                    <DM.RadioItem value="provider" className="cursor-pointer rounded-md bg-card px-2 py-1 text-center text-[13px] font-semibold shadow-card outline-none data-[highlighted]:ring-2 data-[highlighted]:ring-ring">Provider</DM.RadioItem>
-                    <DM.RadioItem value="patient" disabled className="rounded-md px-2 py-1 text-center text-[13px] font-medium text-muted-foreground" title="Patient view arrives in the next iteration">Patient · soon</DM.RadioItem>
-                  </DM.RadioGroup>
+                  <DM.Label className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Prototype review</DM.Label>
+                  <div className="mx-1 mb-1 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1" role="group" aria-label="Portal">
+                    <DM.Item disabled className="rounded-md bg-card px-2 py-1 text-center text-[13px] font-semibold shadow-card outline-none" aria-current="page">Provider</DM.Item>
+                    <DM.Item asChild className="cursor-pointer rounded-md px-2 py-1 text-center text-[13px] font-medium text-muted-foreground outline-none data-[highlighted]:bg-card data-[highlighted]:text-foreground">
+                      <Link to="/patient">Patient</Link>
+                    </DM.Item>
+                  </div>
+                  <DM.Item asChild className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm outline-none data-[highlighted]:bg-muted">
+                    <Link to="/invite-email"><Mail className="size-4" /> Invitation email preview</Link>
+                  </DM.Item>
                   <DM.Separator className="my-1 h-px bg-border" />
                   <DM.Item onSelect={() => setTheme(theme === "dark" ? "light" : "dark")} className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm outline-none data-[highlighted]:bg-muted">
                     {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
