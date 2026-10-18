@@ -1,26 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ListDetailPage, headFor } from "@/components/ListDetail";
 import { Badge, DL } from "@/components/kit";
-import { PATIENTS, pick } from "@/lib/fixtures";
-import type { Tone } from "@/lib/fixtures";
+import { INVOICES, INVOICE_TONE, usd, type Invoice } from "@/lib/patient-data";
 
 export const Route = createFileRoute("/billing")({
   head: headFor("Billing", "Invoice list and invoice details for the clinic."),
   component: Page,
 });
 
-type Inv = { id: string; number: string; patient: string; date: string; amount: number; status: "Paid" | "Open" | "Overdue"; items: [string, number][] };
-const STAT: Record<Inv["status"], Tone> = { Paid: "success", Open: "info", Overdue: "danger" };
-const INVOICES: Inv[] = PATIENTS.slice(0, 12).map((p, i) => ({
-  id: `inv${i}`,
-  number: `INV-2026-${String(4100 + i)}`,
-  patient: p.name,
-  date: `10/${String(1 + i).padStart(2, "0")}/2026`,
-  amount: pick([85, 140, 60, 220, 45, 95], i),
-  status: pick(["Paid", "Open", "Overdue", "Paid"] as const, i),
-  items: [["Office visit", pick([65, 110, 40, 180, 30, 75], i)], ["Administrative fee", 20]],
-}));
-const usd = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+type Inv = Invoice;
+const STAT = INVOICE_TONE;
 
 function Page() {
   return (
