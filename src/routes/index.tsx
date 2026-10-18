@@ -169,7 +169,7 @@ function FrontDesk() {
                 const w = waitMins(a, now);
                 return (
                   <tr key={a.id} className={cn("transition-colors hover:bg-muted/60", openId === a.id && "bg-accent/60")}>
-                    <Td className="font-semibold tabular-nums">{fmtSlot(a.time)}<div className="text-xs font-normal text-muted-foreground">{a.duration} min</div></Td>
+                    <Td className="whitespace-nowrap font-semibold tabular-nums">{fmtSlot(a.time)}<div className="text-xs font-normal text-muted-foreground">{a.duration} min</div></Td>
                     <Td>
                       <button className="rounded text-left font-semibold text-primary hover:underline focus-ring" onClick={(e) => openRow(a.id, e.currentTarget)}>
                         {p.name}
@@ -179,10 +179,10 @@ function FrontDesk() {
                         {p.flags.map((f) => <Badge key={f} tone="neutral" icon={Flag} className="py-0 font-medium">{f}</Badge>)}
                       </div>
                     </Td>
-                    <Td><span className="font-medium">{pr.name}</span><div className="text-xs text-muted-foreground">{a.room}</div></Td>
+                    <Td className="whitespace-nowrap"><span className="font-medium">{pr.name}</span><div className="text-xs text-muted-foreground">{a.room}</div></Td>
                     <Td>{a.type}</Td>
                     <Td><StatusBadge status={a.status} /></Td>
-                    <Td className="tabular-nums">{w === null ? <span className="text-muted-foreground">—</span> : <span className="inline-flex items-center gap-1 font-semibold"><Clock className="size-3.5" aria-hidden />{w} min</span>}</Td>
+                    <Td className="whitespace-nowrap tabular-nums">{w === null ? <span className="text-muted-foreground">—</span> : <span className="inline-flex items-center gap-1 font-semibold"><Clock className="size-3.5" aria-hidden />{w} min</span>}</Td>
                     <Td><NextAction a={a} onArrive={doArrive} onReady={doReady} /></Td>
                   </tr>
                 );
