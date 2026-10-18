@@ -164,6 +164,13 @@ export function seedAppointments(today: string): Appointment[] {
       });
     }
   }
+  // Guaranteed visits for the Patient Portal's fictional account (pt1).
+  const mine = (date: string, time: string, providerId: string, type: string, status: Status): Appointment => ({
+    id: `ap-me-${date}`, date, time, duration: 20, type, patientId: "pt1", providerId, room: "Room 3", status,
+    notes: [], history: [{ at: atToday("07:30", date), text: "Appointment confirmed by SMS" }],
+  });
+  out.push(mine(addDays(today, 2), "10:30", "p1", "Follow-up", "scheduled"));
+  out.push(mine(addDays(today, -2), "09:15", "p1", "Lab review", "completed"));
   return out;
 }
 
