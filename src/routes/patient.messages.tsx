@@ -51,8 +51,10 @@ function Messages() {
   );
 }
 
+const NO_MSGS: never[] = [];
+
 function Thread({ id, subject, seed, onBack }: { id: string; subject: string; seed: { id: string; from: "staff" | "patient"; text: string }[]; onBack: () => void }) {
-  const extra = useStore((s) => s.chats[id] ?? []);
+  const extra = useStore((s) => s.chats[id]) ?? NO_MSGS;
   const draft = useStore((s) => s.drafts[`patient:${id}`] ?? "");
   const endRef = useRef<HTMLDivElement>(null);
   const msgs = [...seed, ...extra];
