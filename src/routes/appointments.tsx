@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ListDetailPage, headFor } from "@/components/ListDetail";
 import { DL, StatusBadge } from "@/components/kit";
-import { addDays, isoDate, patientById, providerById, type Appointment } from "@/lib/fixtures";
+import { nums, addDays, isoDate, patientById, providerById, type Appointment } from "@/lib/fixtures";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/appointments")({
@@ -9,7 +9,7 @@ export const Route = createFileRoute("/appointments")({
   component: Page,
 });
 
-const fmt = (d: string) => { const [y, m, day] = d.split("-").map(Number); return new Date(y, m - 1, day).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }); };
+const fmt = (d: string) => { const [y, m, day] = nums(d, "-"); return new Date(y, m - 1, day).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }); };
 
 function Page() {
   const appts = useStore((s) => s.appts);

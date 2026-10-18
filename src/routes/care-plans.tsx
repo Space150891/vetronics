@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ListDetailPage, headFor } from "@/components/ListDetail";
 import { Badge, DL } from "@/components/kit";
-import { PATIENTS, PROVIDERS } from "@/lib/fixtures";
+import { PATIENTS, PROVIDERS, pick } from "@/lib/fixtures";
 
 export const Route = createFileRoute("/care-plans")({
   head: headFor("Care Plans", "Care plan list with plan preview."),
@@ -10,9 +10,9 @@ export const Route = createFileRoute("/care-plans")({
 
 type Plan = { id: string; patient: string; owner: string; name: string; status: "Active" | "Draft" | "Closed"; review: string; tasks: string[] };
 const PLANS: Plan[] = PATIENTS.slice(2, 11).map((p, i) => ({
-  id: `cp${i}`, patient: p.name, owner: PROVIDERS[i % PROVIDERS.length].name,
-  name: ["Follow-up schedule", "Annual wellness plan", "Lab review series"][i % 3],
-  status: (["Active", "Active", "Draft", "Closed"] as const)[i % 4],
+  id: `cp${i}`, patient: p.name, owner: pick(PROVIDERS, i).name,
+  name: pick(["Follow-up schedule", "Annual wellness plan", "Lab review series"], i),
+  status: pick(["Active", "Active", "Draft", "Closed"] as const, i),
   review: `11/${String(3 + i).padStart(2, "0")}/2026`,
   tasks: ["Schedule next visit", "Send reminder", "Provider review"],
 }));

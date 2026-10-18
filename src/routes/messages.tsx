@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Send } from "lucide-react";
 import { headFor } from "@/components/ListDetail";
 import { Badge, Button, Card, PageHeader, SearchInput, Textarea } from "@/components/kit";
-import { PATIENTS } from "@/lib/fixtures";
+import { PATIENTS, pick } from "@/lib/fixtures";
 import { sendChat, useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -14,13 +14,13 @@ export const Route = createFileRoute("/messages")({
 
 const SUBJECTS = ["Appointment reschedule", "Form question", "Parking information", "Billing question", "Refill request routing", "Directions"];
 const CONVS = PATIENTS.slice(0, 8).map((p, i) => ({
-  id: `c${i}`, patient: p.name, subject: SUBJECTS[i % SUBJECTS.length], unread: i < 2,
-  seed: [{ id: `s${i}`, from: "patient" as const, text: `Hello, I have a question about: ${SUBJECTS[i % SUBJECTS.length].toLowerCase()}.`, at: "" }],
+  id: `c${i}`, patient: p.name, subject: pick(SUBJECTS, i), unread: i < 2,
+  seed: [{ id: `s${i}`, from: "patient" as const, text: `Hello, I have a question about: ${pick(SUBJECTS, i).toLowerCase()}.`, at: "" }],
 }));
 
 function Page() {
   const chats = useStore((s) => s.chats);
-  const [sel, setSel] = useState(CONVS[0].id);
+  const [sel, setSel] = useState(pick(CONVS, 0).id);
   const [q, setQ] = useState("");
   const [draft, setDraft] = useState("");
   const conv = CONVS.find((c) => c.id === sel)!;

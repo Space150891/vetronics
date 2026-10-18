@@ -11,6 +11,10 @@ export const STATUS_META: Record<Status, { label: string; tone: Tone }> = {
   no_show: { label: "No show", tone: "danger" },
 };
 
+/** Index into a non-empty array, wrapping. */
+export const pick = <T,>(arr: readonly T[], i: number): T => arr[((i % arr.length) + arr.length) % arr.length] as T;
+export const nums = (s: string, sep: string) => s.split(sep).map(Number) as [number, number, number];
+
 export type Tone = "info" | "success" | "warning" | "danger" | "teal" | "neutral";
 
 export interface Provider {
@@ -74,13 +78,13 @@ const INS = ["BlueShield PPO", "Aetna HMO", "Self-pay", "Medicare Part B", "Unit
 
 export const PATIENTS: Patient[] = FIRST.map((f, i) => ({
   id: `pt${i + 1}`,
-  name: `${f} ${LAST[i]}`,
+  name: `${f} ${pick(LAST, i)}`,
   dob: `${String((i % 12) + 1).padStart(2, "0")}/${String(((i * 7) % 27) + 1).padStart(2, "0")}/${1950 + ((i * 3) % 60)}`,
   mrn: `DEMO-${String(10200 + i * 37)}`,
   phone: `(555) 01${String(10 + i).padStart(2, "0")}-${String(1000 + i * 113).slice(0, 4)}`,
   email: `${f.toLowerCase()}.demo@example.com`,
-  insurance: INS[i % INS.length],
-  flags: FLAGS[i % FLAGS.length],
+  insurance: pick(INS, i),
+  flags: pick(FLAGS, i) as string[],
   lastVisit: `0${(i % 9) + 1}/1${i % 9}/2026`,
 }));
 
@@ -101,13 +105,13 @@ export function isoDate(d: Date) {
 }
 
 export function addDays(date: string, n: number) {
-  const [y, m, d] = date.split("-").map(Number);
+  const [y, m, d] = nums(date, "-");
   return isoDate(new Date(y, m - 1, d + n));
 }
 
 function atToday(time: string, date: string) {
-  const [y, m, d] = date.split("-").map(Number);
-  const [h, mi] = time.split(":").map(Number);
+  const [y, m, d] = nums(date, "-");
+  const [h, mi] = nums(time, ":");
   return new Date(y, m - 1, d, h, mi).toISOString();
 }
 
@@ -120,7 +124,7 @@ export function seedAppointments(today: string): Appointment[] {
     for (let i = 0; i < count; i++) {
       const minutes = 8 * 60 + i * 25 + (offset + 3) * 5;
       const time = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-      const t = TYPES[(i + offset + 6) % TYPES.length];
+      const t = pick(TYPES, i + offset + 6);
       const pIdx = (i * 5 + offset + 18) % PATIENTS.length;
       let status: Status = "scheduled";
       if (offset < 0) status = i % 9 === 4 ? "no_show" : "completed";
@@ -149,8 +153,8 @@ export function seedAppointments(today: string): Appointment[] {
         time,
         duration: t.duration,
         type: t.type,
-        patientId: PATIENTS[pIdx].id,
-        providerId: PROVIDERS[(i + offset + 4) % PROVIDERS.length].id,
+        patientId: pick(PATIENTS, pIdx).id,
+        providerId: pick(PROVIDERS, i + offset + 4).id,
         room: t.type === "Telehealth" ? "Virtual" : `Room ${(i % 6) + 1}`,
         status,
         arrivedAt,

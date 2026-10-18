@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Badge, Button, Card, Drawer, DL, EmptyState, Field, PageHeader, SearchInput, Select, StatusBadge, Table, Td, Textarea, Th,
 } from "@/components/kit";
-import { CLINIC, CURRENT_USER, PROVIDERS, STATUS_META, addDays, isoDate, patientById, providerById, type Appointment, type Status } from "@/lib/fixtures";
+import { nums, CLINIC, CURRENT_USER, PROVIDERS, STATUS_META, addDays, isoDate, patientById, providerById, type Appointment, type Status } from "@/lib/fixtures";
 import { addNote, markArrived, moveToReady, useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -47,12 +47,12 @@ function waitMins(a: Appointment, now: number | null) {
 }
 
 function fmtDate(d: string) {
-  const [y, m, day] = d.split("-").map(Number);
+  const [y, m, day] = nums(d, "-");
   return new Date(y, m - 1, day).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 }
 const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 const fmtSlot = (t: string) => {
-  const [h, m] = t.split(":").map(Number);
+  const [h, m] = nums(t, ":");
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
 
