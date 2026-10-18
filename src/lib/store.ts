@@ -24,6 +24,7 @@ function fresh(): State {
 }
 
 let state: State = fresh();
+const initialState = state;
 const listeners = new Set<() => void>();
 let hydrated = false;
 
@@ -61,7 +62,7 @@ export function useStore<T>(sel: (s: State) => T): T {
       return () => listeners.delete(l);
     },
     () => sel(state),
-    () => sel(state),
+    () => sel(initialState),
   );
 }
 
