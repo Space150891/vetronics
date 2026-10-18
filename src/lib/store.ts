@@ -132,3 +132,5 @@ export function resetDemo() {
   state = { ...fresh(), theme };
   emit();
 }
+
+export const peekAppointments = () => state.appts;
