@@ -55,7 +55,7 @@ function Page() {
     e.preventDefault();
     const n: Record<string, string> = {};
     FIELDS.forEach((f) => { if (f.required && !val(f.k).trim()) n[f.k] = `${f.label} is required.`; });
-    if (!v.consent) n.consent = "Please confirm to continue.";
+    if (!v['consent']) n['consent'] = "Please confirm to continue.";
     setErr(n);
     const first = Object.keys(n)[0];
     if (first) { document.getElementById(`np-${first}`)?.focus(); toast.error(`${Object.keys(n).length} field(s) need attention.`); return; }
@@ -85,10 +85,10 @@ function Page() {
           ))}
           <div>
             <label className="flex items-start gap-2.5 text-[15px]">
-              <input id="np-consent" type="checkbox" className="mt-1 size-5 accent-[var(--color-primary)]" checked={!!v.consent} onChange={(e) => { setV({ ...v, consent: e.target.checked }); setErr({ ...err, consent: "" }); }} />
+              <input id="np-consent" type="checkbox" className="mt-1 size-5 accent-[var(--color-primary)]" checked={!!v['consent']} onChange={(e) => { setV({ ...v, consent: e.target.checked }); setErr({ ...err, consent: "" }); }} />
               <span>I confirm this information is accurate to the best of my knowledge.</span>
             </label>
-            {err.consent && <p role="alert" className="mt-1 text-xs font-medium text-destructive">{err.consent}</p>}
+            {err['consent'] && <p role="alert" className="mt-1 text-xs font-medium text-destructive">{err['consent']}</p>}
           </div>
           <Button type="submit" size="lg" className="h-12 w-full text-base" loading={busy === "submit"}>Submit form</Button>
           <Button type="button" variant="outline" size="lg" className="w-full" icon={Save} loading={busy === "draft"} onClick={draft}>Save draft</Button>

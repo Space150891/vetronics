@@ -10,7 +10,7 @@ import { addRequest } from "@/lib/store";
 
 export const Route = createFileRoute("/patient/request")({
   head: headFor("Request Appointment", "Ask your clinic for an appointment."),
-  validateSearch: (s: Record<string, unknown>): { provider?: string } => (typeof s.provider === "string" ? { provider: s.provider } : {}),
+  validateSearch: (s: Record<string, unknown>): { provider?: string } => (typeof s['provider'] === "string" ? { provider: s['provider'] } : {}),
   component: RequestPage,
 });
 
@@ -29,10 +29,10 @@ function RequestPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const n: Record<string, string> = {};
-    if (!v.providerId) n.providerId = "Choose a provider.";
-    if (!v.type) n.type = "Choose a visit type.";
-    if (!v.preferredDate || v.preferredDate <= today) n.preferredDate = "Choose a date after today.";
-    if (v.reason.trim().length < 3) n.reason = "Add a short note so the clinic can plan your visit.";
+    if (!v.providerId) n['providerId'] = "Choose a provider.";
+    if (!v.type) n['type'] = "Choose a visit type.";
+    if (!v.preferredDate || v.preferredDate <= today) n['preferredDate'] = "Choose a date after today.";
+    if (v.reason.trim().length < 3) n['reason'] = "Add a short note so the clinic can plan your visit.";
     setErr(n);
     if (Object.values(n).some(Boolean)) { document.getElementById(`rq-${Object.keys(n)[0]}`)?.focus(); return; }
     if (loading) return;
@@ -49,28 +49,28 @@ function RequestPage() {
       <PTitle title="Request Appointment" sub="Tell us what works for you. The clinic will confirm a time." back={{ to: "/patient/appointments", label: "Appointments" }} />
       <Card className="p-5">
         <form onSubmit={submit} noValidate className="space-y-4">
-          <Field label="Provider" htmlFor="rq-providerId" error={err.providerId}>
-            <Select id="rq-providerId" className="h-11 text-base" value={v.providerId} aria-invalid={!!err.providerId} onChange={up("providerId")}>
+          <Field label="Provider" htmlFor="rq-providerId" error={err['providerId']}>
+            <Select id="rq-providerId" className="h-11 text-base" value={v.providerId} aria-invalid={!!err['providerId']} onChange={up("providerId")}>
               <option value="">Select a provider…</option>
               {PROVIDERS.map((p) => <option key={p.id} value={p.id} disabled={!accepting(p.id)}>{p.name}{accepting(p.id) ? "" : " — not taking new requests"}</option>)}
             </Select>
           </Field>
-          <Field label="Visit type" htmlFor="rq-type" error={err.type}>
-            <Select id="rq-type" className="h-11 text-base" value={v.type} aria-invalid={!!err.type} onChange={up("type")}>
+          <Field label="Visit type" htmlFor="rq-type" error={err['type']}>
+            <Select id="rq-type" className="h-11 text-base" value={v.type} aria-invalid={!!err['type']} onChange={up("type")}>
               <option value="">Select a visit type…</option>
               {VISIT_TYPES.map((t) => <option key={t}>{t}</option>)}
             </Select>
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Preferred date" htmlFor="rq-preferredDate" error={err.preferredDate}>
-              <Input id="rq-preferredDate" type="date" min={addDays(today, 1)} className="h-11 text-base" value={v.preferredDate} aria-invalid={!!err.preferredDate} onChange={up("preferredDate")} />
+            <Field label="Preferred date" htmlFor="rq-preferredDate" error={err['preferredDate']}>
+              <Input id="rq-preferredDate" type="date" min={addDays(today, 1)} className="h-11 text-base" value={v.preferredDate} aria-invalid={!!err['preferredDate']} onChange={up("preferredDate")} />
             </Field>
             <Field label="Time of day" htmlFor="rq-timeOfDay">
               <Select id="rq-timeOfDay" className="h-11 text-base" value={v.timeOfDay} onChange={up("timeOfDay")}>{TIMES.map((t) => <option key={t}>{t}</option>)}</Select>
             </Field>
           </div>
-          <Field label="Reason for visit" htmlFor="rq-reason" error={err.reason} hint="Shared with clinic staff only. For emergencies, call 911.">
-            <Textarea id="rq-reason" className="text-base" value={v.reason} aria-invalid={!!err.reason} onChange={up("reason")} placeholder="e.g. Follow-up on recent lab results" />
+          <Field label="Reason for visit" htmlFor="rq-reason" error={err['reason']} hint="Shared with clinic staff only. For emergencies, call 911.">
+            <Textarea id="rq-reason" className="text-base" value={v.reason} aria-invalid={!!err['reason']} onChange={up("reason")} placeholder="e.g. Follow-up on recent lab results" />
           </Field>
           <Button type="submit" size="lg" className="h-12 w-full text-base" loading={loading}>Send request</Button>
         </form>

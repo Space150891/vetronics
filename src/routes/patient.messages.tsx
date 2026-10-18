@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/patient/messages")({
   head: headFor("Messages", "Conversations with your clinic."),
-  validateSearch: (s: Record<string, unknown>): { c?: string } => (typeof s.c === "string" ? { c: s.c } : {}),
+  validateSearch: (s: Record<string, unknown>): { c?: string } => (typeof s['c'] === "string" ? { c: s['c'] } : {}),
   component: Messages,
 });
 

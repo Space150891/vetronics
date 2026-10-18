@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/patient/appointments")({
   head: headFor("Appointments", "Your upcoming and past visits, and pending requests."),
-  validateSearch: (s: Record<string, unknown>): { open?: string } => (typeof s.open === "string" ? { open: s.open } : {}),
+  validateSearch: (s: Record<string, unknown>): { open?: string } => (typeof s['open'] === "string" ? { open: s['open'] } : {}),
   component: Appointments,
 });
 
