@@ -15,3 +15,4 @@
 - Provider pages render inside `AppShell`; `/patient/*` and `/invite-email` bypass it in `__root.tsx` and use the phone-first `patient.tsx` layout.
 - Shared UI primitives live in `src/components/kit.tsx`; patient-specific helpers in `src/components/patient-ui.tsx`.
 - Scheduling rules (bookable time, utilisation, conflicts, free slots) are pure functions in `src/lib/schedule.ts`; both scheduling pages and their calendar UI (`src/components/calendar.tsx`) derive everything from store data so the two calendars never disagree.
+- Internal staff chat (`src/lib/staff-chat.ts`, `StaffChat.tsx`) is a separate store from patient messaging; it is demo-only (local persistence, simulated replies, "/fail" prefix simulates a failed send) — real delivery and access enforcement need a backend.

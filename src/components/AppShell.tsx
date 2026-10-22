@@ -11,6 +11,7 @@ import { CLINIC, CURRENT_USER } from "@/lib/fixtures";
 import { resetDemo, setTheme, useStore } from "@/lib/store";
 import { Tip } from "./kit";
 import { toast } from "sonner";
+import { StaffChat } from "./StaffChat";
 
 export const NAV = [
   { to: "/", label: "Front Desk", icon: LayoutGrid },
@@ -136,7 +137,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </DM.Root>
           </div>
         </header>
-        <main className="min-w-0 flex-1 px-4 py-5 lg:px-6">{children}</main>
+        <main className="min-w-0 flex-1 px-4 pb-20 pt-5 lg:px-6">{children}</main>
+        <StaffChat />
       </div>
     </div>
   );
