@@ -123,7 +123,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const path = useRouterState({ select: (s) => s.location.pathname });
   useEffect(() => hydrateStore(), []);
-  const bare = path.startsWith("/patient") || path.startsWith("/invite-email");
+  const bare = path === "/patient" || path.startsWith("/patient/") || path.startsWith("/invite-email");
 
   return (
     <QueryClientProvider client={queryClient}>
