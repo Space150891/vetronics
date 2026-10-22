@@ -75,7 +75,7 @@ function StaffColumn({ d, date, pid, startMin, endMin, onOpen }: { d: SchedData;
         const c = clip(o.s, o.e);
         if (c.e <= c.s) return null;
         return (
-          <button key={o.shift.id} onClick={() => onOpen(o)} className="absolute inset-x-1 overflow-hidden rounded-md border-l-4 border-primary bg-st-info-bg/80 p-1.5 text-left text-xs text-foreground focus-ring hover:bg-st-info-bg"
+          <button key={o.shift.id} onClick={() => onOpen(o)} className="absolute inset-x-1 flex flex-col items-start justify-start overflow-hidden rounded-md border-l-4 border-primary bg-st-info-bg/80 p-1.5 text-left text-xs text-foreground focus-ring hover:bg-st-info-bg"
             style={{ top: (c.s - startMin) * PX, height: (c.e - c.s) * PX }}>
             <span className="block font-bold">{o.shift.location}</span>
             <span className="block tabular-nums">{o.shift.start}–{o.shift.end}</span>
