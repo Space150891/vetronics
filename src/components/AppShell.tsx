@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <nav aria-label="Main" className="flex-1 space-y-0.5 overflow-y-auto p-2.5">
           {NAV.map((n) => {
-            const active = n.to === "/" ? path === "/" : path.startsWith(n.to);
+            const active = n.to === "/" ? path === "/" : (path === n.to || path.startsWith(`${n.to}/`));
             return (
               <Link
                 key={n.to}
@@ -78,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <select
               aria-label="Go to area"
               className="h-9 rounded-lg border border-input bg-card px-2 text-sm"
-              value={NAV.find((n) => (n.to === "/" ? path === "/" : path.startsWith(n.to)))?.to}
+              value={NAV.find((n) => (n.to === "/" ? path === "/" : (path === n.to || path.startsWith(`${n.to}/`))))?.to}
               onChange={(e) => (window.location.href = e.target.value)}
             >
               {NAV.map((n) => <option key={n.to} value={n.to}>{n.label}</option>)}
