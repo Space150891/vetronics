@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { isoDate, seedAppointments, type Appointment } from "./fixtures";
+import { addDays, isoDate, seedAppointments, type Appointment, type Status } from "./fixtures";
+import { seedShifts, weekday, type Shift, type TimeOff } from "./schedule";
 
 export interface ChatMsg {
   id: string;
@@ -44,6 +45,9 @@ interface State {
   requests: ApptRequest[];
   profile: PatientProfile;
   form: { data: NewPatientForm; status: "empty" | "draft" | "submitted"; savedAt?: string | undefined };
+  shifts: Shift[];
+  skips: string[];
+  timeOff: TimeOff[];
 }
 
 const KEY = "vectronics-proto-v2";
@@ -72,6 +76,9 @@ function fresh(): State {
     requests: [],
     profile: DEFAULT_PROFILE,
     form: { data: {}, status: "empty" },
+    shifts: seedShifts(addDays(today, 1 - (weekday(today) || 7))),
+    skips: [],
+    timeOff: [{ id: "to-seed", providerId: "p2", from: addDays(today, 7), to: addDays(today, 8), allDay: true, start: "08:00", end: "17:00", reason: "Conference" }],
   };
 }
 
@@ -92,8 +99,9 @@ export function hydrateStore() {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as State;
-      if (parsed.version === 2 && parsed.seededFor === today) state = parsed;
-      else if (parsed.version === 2) state = { ...fresh(), theme: parsed.theme, session: parsed.session, profile: parsed.profile, form: parsed.form, requests: parsed.requests };
+      const f = fresh();
+      if (parsed.version === 2 && parsed.seededFor === today) state = { ...f, ...parsed };
+      else if (parsed.version === 2) state = { ...f, theme: parsed.theme, session: parsed.session, profile: parsed.profile, form: parsed.form, requests: parsed.requests, shifts: parsed.shifts ?? f.shifts, skips: parsed.skips ?? [], timeOff: parsed.timeOff ?? f.timeOff };
     }
   } catch {
     /* ignore corrupt storage */
@@ -229,3 +237,46 @@ export function submitForm(data: NewPatientForm) {
 
 export const peekAppointments = () => state.appts;
 export const peekState = () => state;
+
+/* ---------- Scheduling ---------- */
+const uid = (p: string) => `${p}-${Date.now()}-${Math.round(Math.random() * 1e4)}`;
+
+export function addShift(sh: Omit<Shift, "id">) {
+  const n = { ...sh, id: uid("sh") };
+  set((s) => ({ ...s, shifts: [...s.shifts, n] }));
+  return n;
+}
+/** scope "one" edits only `date` of a weekly series (skip + one-off copy); "series" edits the whole series. */
+export function updateShift(id: string, patch: Omit<Shift, "id">, scope: "one" | "series", date: string) {
+  const cur = state.shifts.find((x) => x.id === id);
+  if (!cur) return;
+  if (cur.recurring && scope === "one") {
+    set((s) => ({ ...s, skips: [...s.skips, `${id}|${date}`], shifts: [...s.shifts, { ...patch, recurring: false, date: patch.date, id: uid("sh") }] }));
+  } else {
+    set((s) => ({ ...s, shifts: s.shifts.map((x) => (x.id === id ? { ...patch, id, date: cur.recurring && scope === "series" ? cur.date : patch.date } : x)) }));
+  }
+}
+export function deleteShift(id: string, scope: "one" | "series", date: string) {
+  const cur = state.shifts.find((x) => x.id === id);
+  if (!cur) return;
+  if (cur.recurring && scope === "one") set((s) => ({ ...s, skips: [...s.skips, `${id}|${date}`] }));
+  else set((s) => ({ ...s, shifts: s.shifts.filter((x) => x.id !== id) }));
+}
+export function addTimeOff(t: Omit<TimeOff, "id">) {
+  set((s) => ({ ...s, timeOff: [...s.timeOff, { ...t, id: uid("to") }] }));
+}
+export function deleteTimeOff(id: string) {
+  set((s) => ({ ...s, timeOff: s.timeOff.filter((t) => t.id !== id) }));
+}
+export function bookAppointment(a: { date: string; time: string; duration: number; providerId: string; patientId: string; type: string }) {
+  const at = nowIso();
+  const appt: Appointment = { ...a, id: uid("ap"), room: a.type === "Telehealth" ? "Virtual" : "Room 1", status: "scheduled", notes: [], history: [{ at, text: "Booked from Patient Scheduling" }] };
+  set((s) => ({ ...s, appts: [...s.appts, appt] }));
+  return appt;
+}
+export function rescheduleAppt(id: string, p: { date: string; time: string; duration: number; providerId: string; type: string }) {
+  return patchAppt(id, (a) => ({ ...a, ...p, history: [...a.history, { at: nowIso(), text: `Rescheduled to ${p.date} ${p.time}` }] }));
+}
+export function setApptStatus(id: string, status: Status) {
+  return patchAppt(id, (a) => (a.status === status ? null : { ...a, status, history: [...a.history, { at: nowIso(), text: `Status set to ${status.replace("_", " ")}` }] }));
+}

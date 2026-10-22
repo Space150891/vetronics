@@ -199,3 +199,13 @@
     outline-offset: 2px;
   }
 }
+
+@utility cal-stripe {
+  background: repeating-linear-gradient(135deg, var(--surface) 0 6px, color-mix(in oklab, var(--muted-foreground) 14%, var(--surface)) 6px 8px);
+}
+@utility cal-stripe-warn {
+  background: repeating-linear-gradient(135deg, var(--st-warning-bg) 0 6px, color-mix(in oklab, var(--st-warning) 22%, var(--st-warning-bg)) 6px 8px);
+}
+@utility cal-stripe-danger {
+  background: repeating-linear-gradient(135deg, var(--st-danger-bg) 0 6px, color-mix(in oklab, var(--st-danger) 20%, var(--st-danger-bg)) 6px 8px);
+}

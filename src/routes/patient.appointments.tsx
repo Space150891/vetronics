@@ -22,6 +22,7 @@ const PATIENT_STATUS: Record<Appointment["status"], { label: string; tone: Tone 
   in_room: { label: "In progress", tone: "warning" },
   completed: { label: "Completed", tone: "neutral" },
   no_show: { label: "Missed", tone: "danger" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
 };
 
 function Appointments() {
@@ -31,7 +32,7 @@ function Appointments() {
   const requests = useStore((s) => s.requests);
   const today = isoDate(new Date());
   const mine = appts.filter((a) => a.patientId === ME.id).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  const upcoming = mine.filter((a) => a.date >= today && a.status !== "completed" && a.status !== "no_show");
+  const upcoming = mine.filter((a) => a.date >= today && a.status !== "completed" && a.status !== "no_show" && a.status !== "cancelled");
   const past = mine.filter((a) => !upcoming.includes(a)).reverse();
   const trigger = useRef<HTMLElement | null>(null);
   const appt = open ? mine.find((a) => a.id === open) : undefined;

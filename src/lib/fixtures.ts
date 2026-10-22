@@ -1,6 +1,6 @@
 // Synthetic, non-identifying demo data. No real patients, staff or records.
 
-export type Status = "scheduled" | "arrived" | "ready" | "in_room" | "completed" | "no_show";
+export type Status = "scheduled" | "arrived" | "ready" | "in_room" | "completed" | "no_show" | "cancelled";
 
 export const STATUS_META: Record<Status, { label: string; tone: Tone }> = {
   scheduled: { label: "Scheduled", tone: "info" },
@@ -9,6 +9,7 @@ export const STATUS_META: Record<Status, { label: string; tone: Tone }> = {
   in_room: { label: "In room", tone: "warning" },
   completed: { label: "Completed", tone: "neutral" },
   no_show: { label: "No show", tone: "danger" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
 };
 
 /** Index into a non-empty array, wrapping. */
@@ -120,9 +121,12 @@ export function seedAppointments(today: string): Appointment[] {
   const out: Appointment[] = [];
   for (let offset = -3; offset <= 3; offset++) {
     const date = addDays(today, offset);
+    const wd = new Date(`${date}T12:00:00`).getDay();
+    if (offset !== 0 && (wd === 0 || wd === 6)) continue;
     const count = offset === 0 ? 16 : 10 + ((offset + 3) % 4);
     for (let i = 0; i < count; i++) {
-      const minutes = 8 * 60 + i * 25 + (offset + 3) * 5;
+      let minutes = 8 * 60 + i * 25 + (offset + 3) * 5;
+      if (minutes + 40 > 12 * 60) minutes = Math.max(minutes + 60, 13 * 60); // keep the lunch break free
       const time = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
       const t = pick(TYPES, i + offset + 6);
       const pIdx = (i * 5 + offset + 18) % PATIENTS.length;
