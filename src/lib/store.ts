@@ -29,6 +29,16 @@ export interface PatientProfile {
   emergencyPhone: string;
 }
 
+/** Visit note linked 1:1 to an appointment (keyed by appointment id, so duplicates are impossible). */
+export interface Encounter {
+  apptId: string;
+  text: string;
+  status: "in_progress" | "final";
+  startedAt: string;
+  savedAt: string;
+  finalizedAt?: string | undefined;
+}
+
 export type NewPatientForm = Record<string, string | boolean>;
 
 interface State {
@@ -48,6 +58,7 @@ interface State {
   shifts: Shift[];
   skips: string[];
   timeOff: TimeOff[];
+  encounters: Record<string, Encounter>;
 }
 
 const KEY = "vectronics-proto-v2";
@@ -79,7 +90,18 @@ function fresh(): State {
     shifts: seedShifts(addDays(today, 1 - (weekday(today) || 7))),
     skips: [],
     timeOff: [{ id: "to-seed", providerId: "p2", from: addDays(today, 7), to: addDays(today, 8), allDay: true, start: "08:00", end: "17:00", reason: "Conference" }],
+    encounters: seedEncounters(),
   };
+}
+
+function seedEncounters(): Record<string, Encounter> {
+  const at = new Date(Date.now() - 3600_000).toISOString();
+  const out: Record<string, Encounter> = {};
+  // Today's first finished visits: one finalized, one in progress; the rest stay "Missing note".
+  out[`ap-${today}-0`] = { apptId: `ap-${today}-0`, text: "Follow-up visit. Patient reports improvement since last visit.", status: "final", startedAt: at, savedAt: at, finalizedAt: at };
+  out[`ap-${today}-1`] = { apptId: `ap-${today}-1`, text: "Visit in progress — draft started.", status: "in_progress", startedAt: at, savedAt: at };
+  out[`ap-${today}-4`] = { apptId: `ap-${today}-4`, text: "", status: "in_progress", startedAt: at, savedAt: at };
+  return out;
 }
 
 let state: State = fresh();
@@ -101,7 +123,7 @@ export function hydrateStore() {
       const parsed = JSON.parse(raw) as State;
       const f = fresh();
       if (parsed.version === 2 && parsed.seededFor === today) state = { ...f, ...parsed };
-      else if (parsed.version === 2) state = { ...f, theme: parsed.theme, session: parsed.session, profile: parsed.profile, form: parsed.form, requests: parsed.requests, shifts: parsed.shifts ?? f.shifts, skips: parsed.skips ?? [], timeOff: parsed.timeOff ?? f.timeOff };
+      else if (parsed.version === 2) state = { ...f, theme: parsed.theme, session: parsed.session, profile: parsed.profile, form: parsed.form, requests: parsed.requests, shifts: parsed.shifts ?? f.shifts, skips: parsed.skips ?? [], timeOff: parsed.timeOff ?? f.timeOff, encounters: { ...f.encounters, ...(parsed.encounters ?? {}) } };
     }
   } catch {
     /* ignore corrupt storage */
@@ -317,4 +339,36 @@ export function undoStage(id: string) {
     if (a.status === "completed" && !a.checkedOutAt) return { ...a, status: "in_room", history: h("Moved back to With provider") };
     return null;
   });
+}
+
+/* ---------- Visit notes ---------- */
+/** Start or resume the note for an appointment. Idempotent — repeated clicks never duplicate. */
+export function startEncounter(apptId: string) {
+  const existing = state.encounters[apptId];
+  const a = state.appts.find((x) => x.id === apptId);
+  if (!a) return;
+  if (!existing) {
+    const at = nowIso();
+    set((s) => ({ ...s, encounters: { ...s.encounters, [apptId]: { apptId, text: "", status: "in_progress", startedAt: at, savedAt: at } } }));
+  }
+  // Starting brings the patient into the room, matching the Front Desk "With provider" stage.
+  if (a.status === "scheduled" || a.status === "arrived" || a.status === "ready") {
+    patchAppt(apptId, (x) => ({ ...x, status: "in_room", arrivedAt: x.arrivedAt ?? nowIso(), history: [...x.history, { at: nowIso(), text: "Appointment started" }] }));
+  }
+}
+/** Save draft text; finalized notes are read-only. Returns false if not saved. */
+export function saveEncounter(apptId: string, text: string) {
+  const e = state.encounters[apptId];
+  if (!e || e.status === "final") return false;
+  try {
+    set((s) => ({ ...s, encounters: { ...s.encounters, [apptId]: { ...e, text, savedAt: nowIso() } } }));
+    return true;
+  } catch { return false; }
+}
+/** Finalize: locks the note. Does not touch billing, payment or checkout. */
+export function finalizeEncounter(apptId: string) {
+  const e = state.encounters[apptId];
+  if (!e || e.status === "final" || !e.text.trim()) return false;
+  set((s) => ({ ...s, encounters: { ...s.encounters, [apptId]: { ...e, status: "final", finalizedAt: nowIso() } } }));
+  return true;
 }
