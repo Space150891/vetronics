@@ -58,6 +58,8 @@ export interface Appointment {
   status: Status;
   arrivedAt?: string | undefined;
   readyAt?: string | undefined;
+  /** Front-desk checkout done (separate from visit completion and invoice payment). */
+  checkedOutAt?: string | undefined;
   notes: Note[];
   history: HistoryItem[];
 }
@@ -163,6 +165,7 @@ export function seedAppointments(today: string): Appointment[] {
         status,
         arrivedAt,
         readyAt,
+        checkedOutAt: status === "completed" && (offset < 0 || i < 2) ? atToday(time, date) : undefined,
         notes: i === 5 && offset === 0 ? [{ id: "n-seed", at: atToday("07:45", date), by: "Front Desk", text: "Updated insurance card scanned." }] : [],
         history,
       });
@@ -174,7 +177,7 @@ export function seedAppointments(today: string): Appointment[] {
     notes: [], history: [{ at: atToday("07:30", date), text: "Appointment confirmed by SMS" }],
   });
   out.push(mine(addDays(today, 2), "10:30", "p1", "Follow-up", "scheduled"));
-  out.push(mine(addDays(today, -2), "09:15", "p1", "Lab review", "completed"));
+  out.push({ ...mine(addDays(today, -2), "09:15", "p1", "Lab review", "completed"), checkedOutAt: atToday("09:45", addDays(today, -2)) });
   return out;
 }
 

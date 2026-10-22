@@ -280,3 +280,41 @@ export function rescheduleAppt(id: string, p: { date: string; time: string; dura
 export function setApptStatus(id: string, status: Status) {
   return patchAppt(id, (a) => (a.status === status ? null : { ...a, status, history: [...a.history, { at: nowIso(), text: `Status set to ${status.replace("_", " ")}` }] }));
 }
+
+/* ---------- Front desk board ---------- */
+export type Stage = "expected" | "waiting" | "with_provider" | "checkout" | "done";
+/** Board stage derived from the appointment's existing status (no duplicate records). */
+export function stageOf(a: Appointment): Stage {
+  if (a.status === "scheduled") return "expected";
+  if (a.status === "arrived" || a.status === "ready") return "waiting";
+  if (a.status === "in_room") return "with_provider";
+  if (a.status === "completed" && !a.checkedOutAt) return "checkout";
+  return "done";
+}
+/** Waiting → With provider. Idempotent. */
+export function sendToProvider(id: string) {
+  return patchAppt(id, (a) => {
+    if (a.status !== "arrived" && a.status !== "ready") return null;
+    const at = nowIso();
+    return { ...a, status: "in_room", readyAt: a.readyAt ?? at, history: [...a.history, { at, text: "Sent to provider" }] };
+  });
+}
+/** With provider → Ready to check out. Never touches invoices. */
+export function finishVisit(id: string) {
+  return patchAppt(id, (a) => (a.status !== "in_room" ? null : { ...a, status: "completed", checkedOutAt: undefined, history: [...a.history, { at: nowIso(), text: "Visit finished, ready for checkout" }] }));
+}
+/** Completes front-desk checkout; invoice payment is a separate step in Billing. */
+export function completeCheckout(id: string) {
+  return patchAppt(id, (a) => (a.status !== "completed" || a.checkedOutAt ? null : { ...a, checkedOutAt: nowIso(), history: [...a.history, { at: nowIso(), text: "Checked out" }] }));
+}
+/** Correct an accidental transition by stepping back one stage. */
+export function undoStage(id: string) {
+  return patchAppt(id, (a) => {
+    const at = nowIso();
+    const h = (text: string) => [...a.history, { at, text }];
+    if (a.status === "arrived" || a.status === "ready") return { ...a, status: "scheduled", arrivedAt: undefined, readyAt: undefined, history: h("Check-in undone") };
+    if (a.status === "in_room") return { ...a, status: "ready", history: h("Moved back to Waiting") };
+    if (a.status === "completed" && !a.checkedOutAt) return { ...a, status: "in_room", history: h("Moved back to With provider") };
+    return null;
+  });
+}
