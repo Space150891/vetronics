@@ -97,6 +97,10 @@ function fresh(): State {
 function seedEncounters(): Record<string, Encounter> {
   const at = new Date(Date.now() - 3600_000).toISOString();
   const out: Record<string, Encounter> = {};
+  // Earlier days: most notes finalized, every 4th left outstanding for the demo.
+  seedAppointments(today).filter((a) => a.date < today && a.status === "completed").forEach((a, i) => {
+    if (i % 4 !== 1) out[a.id] = { apptId: a.id, text: `${a.type} documented.`, status: "final", startedAt: at, savedAt: at, finalizedAt: at };
+  });
   // Today's first finished visits: one finalized, one in progress; the rest stay "Missing note".
   out[`ap-${today}-0`] = { apptId: `ap-${today}-0`, text: "Follow-up visit. Patient reports improvement since last visit.", status: "final", startedAt: at, savedAt: at, finalizedAt: at };
   out[`ap-${today}-1`] = { apptId: `ap-${today}-1`, text: "Visit in progress — draft started.", status: "in_progress", startedAt: at, savedAt: at };
