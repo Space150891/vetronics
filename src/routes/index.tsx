@@ -1,21 +1,21 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CalendarX2, ChevronLeft, ChevronRight, Clock, Flag, LogIn, Plus, UserCheck } from "lucide-react";
+import { ArrowRight, CalendarPlus, CalendarClock, Clock, Flag, LogIn, Plus, Receipt, Stethoscope, Undo2, UserX, XCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Badge, Button, Card, Drawer, DL, EmptyState, Field, PageHeader, SearchInput, Select, StatusBadge, Table, Td, Textarea, Th,
-} from "@/components/kit";
-import { nums, CLINIC, CURRENT_USER, PROVIDERS, STATUS_META, addDays, isoDate, patientById, providerById, type Appointment, type Status } from "@/lib/fixtures";
-import { addNote, markArrived, moveToReady, useStore } from "@/lib/store";
+import { Badge, Button, Drawer, DL, Field, StatusBadge, Textarea } from "@/components/kit";
+import { ProviderFilter } from "@/components/calendar";
+import { nums, CURRENT_USER, isoDate, patientById, providerById, type Appointment } from "@/lib/fixtures";
+import { INVOICES, INVOICE_TONE, usd } from "@/lib/patient-data";
+import { addNote, completeCheckout, finishVisit, markArrived, sendToProvider, setApptStatus, stageOf, undoStage, useStore, type Stage } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Front Desk · Vectronics Provider" },
-      { name: "description", content: "Today's clinic worklist: check patients in, move them to Ready and track wait times." },
+      { name: "description", content: "Today's visits from the door to the till: check in, send to provider, check out." },
       { property: "og:title", content: "Front Desk · Vectronics Provider" },
-      { property: "og:description", content: "Today's clinic worklist for front desk staff." },
+      { property: "og:description", content: "Today's visit board for front desk staff." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -23,12 +23,12 @@ export const Route = createFileRoute("/")({
   component: FrontDesk,
 });
 
-type CounterKey = "scheduled" | "arrived" | "ready" | "completed";
-const COUNTERS: { key: CounterKey; label: string }[] = [
-  { key: "scheduled", label: "Scheduled" },
-  { key: "arrived", label: "Arrived" },
-  { key: "ready", label: "Waiting (Ready)" },
-  { key: "completed", label: "Completed" },
+type BoardStage = Exclude<Stage, "done">;
+const COLUMNS: { key: BoardStage; title: string; sub: string }[] = [
+  { key: "expected", title: "Expected", sub: "Booked for today, not arrived yet." },
+  { key: "waiting", title: "Waiting", sub: "Arrived. Send them back when their provider's free." },
+  { key: "with_provider", title: "With provider", sub: "In the room now." },
+  { key: "checkout", title: "Ready to check out", sub: "Finished. Settle the bill and book anything next." },
 ];
 
 function useNow() {
@@ -40,186 +40,126 @@ function useNow() {
   }, []);
   return now;
 }
-
-function waitMins(a: Appointment, now: number | null) {
-  if (!now || !a.arrivedAt || (a.status !== "arrived" && a.status !== "ready")) return null;
-  return Math.max(0, Math.round((now - new Date(a.arrivedAt).getTime()) / 60000));
-}
-
-function fmtDate(d: string) {
-  const [y, m, day] = nums(d, "-");
-  return new Date(y, m - 1, day).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-}
+const mins = (iso: string | undefined, now: number | null) => (iso && now ? Math.max(0, Math.round((now - new Date(iso).getTime()) / 60000)) : null);
 const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 const fmtSlot = (t: string) => {
   const [h, m] = nums(t, ":");
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
+const balanceFor = (patientId: string) => INVOICES.filter((i) => i.patientId === patientId && i.status !== "Paid");
 
 function FrontDesk() {
   const appts = useStore((s) => s.appts);
   const now = useNow();
   const today = isoDate(new Date());
-  const [date, setDate] = useState(today);
-  const [q, setQ] = useState("");
   const [provider, setProvider] = useState("all");
-  const [status, setStatus] = useState<"all" | Status>("all");
+  const [tab, setTab] = useState<BoardStage>("expected");
   const [openId, setOpenId] = useState<string | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
 
-  // Counters reflect date + provider + search; status filter narrows the list only.
-  const base = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return appts
-      .filter((a) => a.date === date)
-      .filter((a) => provider === "all" || a.providerId === provider)
-      .filter((a) => {
-        if (!needle) return true;
-        const p = patientById(a.patientId);
-        return p.name.toLowerCase().includes(needle) || p.mrn.toLowerCase().includes(needle) || p.dob.includes(needle) || p.phone.includes(needle);
-      })
-      .sort((a, b) => a.time.localeCompare(b.time));
-  }, [appts, date, q, provider]);
-  const rows = status === "all" ? base : base.filter((a) => a.status === status);
-  const counts = useMemo(() => {
-    const c: Record<CounterKey, number> = { scheduled: 0, arrived: 0, ready: 0, completed: 0 };
-    base.forEach((a) => { if (a.status in c) c[a.status as CounterKey]++; });
-    return c;
-  }, [base]);
+  const byStage = useMemo(() => {
+    const out: Record<BoardStage, Appointment[]> = { expected: [], waiting: [], with_provider: [], checkout: [] };
+    appts
+      .filter((a) => a.date === today && (provider === "all" || a.providerId === provider))
+      .sort((a, b) => a.time.localeCompare(b.time))
+      .forEach((a) => { const s = stageOf(a); if (s !== "done") out[s].push(a); });
+    return out;
+  }, [appts, today, provider]);
 
   const open = appts.find((a) => a.id === openId) ?? null;
-  const openRow = (id: string, el: HTMLElement) => { triggerRef.current = el; setOpenId(id); };
-
-  const doArrive = (a: Appointment) => {
-    if (markArrived(a.id)) toast.success(`${patientById(a.patientId).name} marked Arrived`);
-  };
-  const doReady = (a: Appointment) => {
-    if (moveToReady(a.id)) toast.success(`${patientById(a.patientId).name} moved to Ready`);
-  };
+  const openCard = (id: string, el: HTMLElement) => { triggerRef.current = el; setOpenId(id); };
 
   return (
-    <div className="mx-auto max-w-[1440px]">
-      <PageHeader
-        title="Front Desk"
-        sub={<>{CLINIC.name} · <span className="font-medium text-foreground">{fmtDate(date)}</span></>}
-        actions={
-          <Button icon={Plus} onClick={() => toast("Booking opens in Patient Scheduling.", { action: { label: "Open", onClick: () => (window.location.href = "/patient-scheduling") } })}>
-            Book appointment
-          </Button>
-        }
-      />
-
-      <Card className="mb-3 flex flex-wrap items-center gap-2 p-3">
-        <div className="flex items-center gap-1" role="group" aria-label="Date navigation">
-          <Button variant="outline" size="icon" aria-label="Previous day" onClick={() => setDate(addDays(date, -1))}><ChevronLeft /></Button>
-          <Button variant="outline" onClick={() => setDate(today)} disabled={date === today} disabledReason="Already showing today">Today</Button>
-          <Button variant="outline" size="icon" aria-label="Next day" onClick={() => setDate(addDays(date, 1))}><ChevronRight /></Button>
-          <input type="date" aria-label="Pick date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className="h-9 rounded-lg border border-input bg-card px-2 text-sm focus-ring" />
+    <div className="mx-auto max-w-[1600px]">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Front desk</h1>
+          <p className="text-sm text-muted-foreground">Today's visits, from the door to the till.</p>
         </div>
-        <SearchInput className="min-w-[220px] flex-1" placeholder="Patient name, DOB, phone or MRN" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search patients" />
-        <Select aria-label="Provider" className="w-auto min-w-[170px]" value={provider} onChange={(e) => setProvider(e.target.value)}>
-          <option value="all">All providers</option>
-          {PROVIDERS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </Select>
-        <Select aria-label="Status" className="w-auto min-w-[140px]" value={status} onChange={(e) => setStatus(e.target.value as Status | "all")}>
-          <option value="all">All statuses</option>
-          {(Object.keys(STATUS_META) as Status[]).map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
-        </Select>
-      </Card>
+        <Link to="/patient-scheduling" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground focus-ring"><Plus className="size-4" aria-hidden /> Book appointment</Link>
+      </div>
+      <div className="mb-4"><ProviderFilter value={provider} onChange={setProvider} /></div>
 
-      <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Status counts (click to filter)">
-        {COUNTERS.map((c) => {
-          const sel = status === c.key;
-          return (
-            <button
-              key={c.key}
-              aria-pressed={sel}
-              onClick={() => setStatus(sel ? "all" : c.key)}
-              className={cn("inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[13px] font-semibold shadow-card focus-ring transition-colors", sel ? "border-primary bg-accent text-accent-foreground" : "bg-card hover:bg-muted")}
-            >
-              <StatusBadgeDot status={c.key} />
-              {c.label}
-              <span className="text-base font-bold tabular-nums">{counts[c.key]}</span>
-            </button>
-          );
-        })}
-        <span className="ml-auto self-center text-[13px] text-muted-foreground">{rows.length} of {base.length} appointments shown</span>
+      <div role="tablist" aria-label="Visit stages" className="mb-3 grid grid-cols-2 gap-1 rounded-lg border bg-card p-1 sm:grid-cols-4 lg:hidden">
+        {COLUMNS.map((c) => (
+          <button key={c.key} role="tab" aria-selected={tab === c.key} onClick={() => setTab(c.key)}
+            className={cn("rounded-md px-2 py-1.5 text-[13px] font-semibold focus-ring", tab === c.key ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+            {c.title} <span className="tabular-nums">{byStage[c.key].length}</span>
+          </button>
+        ))}
       </div>
 
-      <Card className="overflow-hidden">
-        {rows.length === 0 ? (
-          <EmptyState icon={CalendarX2} title="No appointments match" body="Try another date, provider or status, or clear the search." action={<Button variant="outline" size="sm" onClick={() => { setQ(""); setProvider("all"); setStatus("all"); }}>Clear filters</Button>} />
-        ) : (
-          <Table>
-            <thead>
-              <tr>
-                <Th className="w-[88px]">Time</Th>
-                <Th>Patient</Th>
-                <Th>Provider</Th>
-                <Th>Type</Th>
-                <Th>Status</Th>
-                <Th className="w-[90px]">Wait</Th>
-                <Th className="w-[170px]">Next action</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((a) => {
-                const p = patientById(a.patientId);
-                const pr = providerById(a.providerId);
-                const w = waitMins(a, now);
-                return (
-                  <tr key={a.id} className={cn("transition-colors hover:bg-muted/60", openId === a.id && "bg-accent/60")}>
-                    <Td className="whitespace-nowrap font-semibold tabular-nums">{fmtSlot(a.time)}<div className="text-xs font-normal text-muted-foreground">{a.duration} min</div></Td>
-                    <Td>
-                      <button className="rounded text-left font-semibold text-primary hover:underline focus-ring" onClick={(e) => openRow(a.id, e.currentTarget)}>
-                        {p.name}
-                      </button>
-                      <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-                        <span>DOB {p.dob}</span>
-                        {p.flags.map((f) => <Badge key={f} tone="neutral" icon={Flag} className="py-0 font-medium">{f}</Badge>)}
-                      </div>
-                    </Td>
-                    <Td className="whitespace-nowrap"><span className="font-medium">{pr.name}</span><div className="text-xs text-muted-foreground">{a.room}</div></Td>
-                    <Td>{a.type}</Td>
-                    <Td><StatusBadge status={a.status} /></Td>
-                    <Td className="whitespace-nowrap tabular-nums">{w === null ? <span className="text-muted-foreground">—</span> : <span className="inline-flex items-center gap-1 font-semibold"><Clock className="size-3.5" aria-hidden />{w} min</span>}</Td>
-                    <Td><NextAction a={a} onArrive={doArrive} onReady={doReady} /></Td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        )}
-      </Card>
+      <div className="grid gap-4 lg:grid-cols-4">
+        {COLUMNS.map((c) => (
+          <section key={c.key} aria-labelledby={`col-${c.key}`} className={cn("min-w-0", tab !== c.key && "hidden lg:block")}>
+            <div className="mb-2 px-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <h2 id={`col-${c.key}`} className="text-[15px] font-semibold">{c.title}</h2>
+                <span className="text-sm tabular-nums text-muted-foreground" aria-label={`${byStage[c.key].length} visits`}>{byStage[c.key].length}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{c.sub}</p>
+            </div>
+            <ul className="space-y-2">
+              {byStage[c.key].length === 0 && <li className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">Nobody here</li>}
+              {byStage[c.key].map((a) => <VisitCard key={a.id} a={a} now={now} selected={openId === a.id} onOpen={openCard} />)}
+            </ul>
+          </section>
+        ))}
+      </div>
 
-      {open && <AppointmentDrawer a={open} now={now} onClose={() => setOpenId(null)} returnFocusRef={triggerRef} onArrive={doArrive} onReady={doReady} />}
+      {open && <VisitDrawer a={open} now={now} onClose={() => setOpenId(null)} returnFocusRef={triggerRef} />}
     </div>
   );
 }
 
-function StatusBadgeDot({ status }: { status: Status }) {
-  const tone = STATUS_META[status].tone;
-  const cls = { info: "bg-st-info", teal: "bg-st-teal", success: "bg-st-success", warning: "bg-st-warning", neutral: "bg-st-neutral", danger: "bg-st-danger" }[tone];
-  return <span className={cn("size-2 rounded-full", cls)} aria-hidden />;
+function PrimaryAction({ a, size = "sm" }: { a: Appointment; size?: "sm" | "md" }) {
+  const name = patientById(a.patientId).name;
+  const s = size === "md" ? undefined : "sm";
+  switch (stageOf(a)) {
+    case "expected": return <Button size={s} icon={LogIn} onClick={() => markArrived(a.id) && toast.success(`${name} checked in`)}>Check in</Button>;
+    case "waiting": return <Button size={s} icon={ArrowRight} onClick={() => sendToProvider(a.id) && toast.success(`${name} sent to ${providerById(a.providerId).name}`)}>Send to provider</Button>;
+    case "with_provider": return <Button size={s} icon={Receipt} onClick={() => finishVisit(a.id) && toast.success(`${name} ready for checkout`)}>Ready for checkout</Button>;
+    default: return null;
+  }
 }
 
-function NextAction({ a, onArrive, onReady, full }: { a: Appointment; onArrive: (a: Appointment) => void; onReady: (a: Appointment) => void; full?: boolean }) {
-  if (a.status === "scheduled") return <Button size="sm" variant={full ? "primary" : "outline"} icon={LogIn} onClick={() => onArrive(a)}>Mark arrived</Button>;
-  if (a.status === "arrived") return <Button size="sm" icon={UserCheck} onClick={() => onReady(a)}>Move to Ready</Button>;
-  if (a.status === "ready") return <span className="text-[13px] text-muted-foreground">Waiting for provider</span>;
-  if (a.status === "in_room") return <span className="text-[13px] text-muted-foreground">With provider</span>;
-  return <span className="text-muted-foreground">—</span>;
-}
-
-function AppointmentDrawer({ a, now, onClose, returnFocusRef, onArrive, onReady }: {
-  a: Appointment; now: number | null; onClose: () => void; returnFocusRef: React.RefObject<HTMLElement | null>;
-  onArrive: (a: Appointment) => void; onReady: (a: Appointment) => void;
-}) {
+function VisitCard({ a, now, selected, onOpen }: { a: Appointment; now: number | null; selected: boolean; onOpen: (id: string, el: HTMLElement) => void }) {
   const p = patientById(a.patientId);
   const pr = providerById(a.providerId);
+  const stage = stageOf(a);
+  const wait = stage === "waiting" ? mins(a.arrivedAt, now) : null;
+  const owed = stage === "checkout" ? balanceFor(a.patientId).reduce((n, i) => n + i.amount, 0) : 0;
+  return (
+    <li className={cn("rounded-lg border bg-card p-3 shadow-card", selected && "border-primary ring-1 ring-primary")}>
+      <div className="flex items-start justify-between gap-2">
+        <button className="min-w-0 rounded text-left font-semibold text-primary hover:underline focus-ring" onClick={(e) => onOpen(a.id, e.currentTarget)}>
+          <span className="block truncate">{p.name}</span>
+        </button>
+        <span className="shrink-0 text-sm font-semibold tabular-nums">{fmtSlot(a.time)}</span>
+      </div>
+      <p className="truncate text-xs text-muted-foreground">{pr.name} · {a.type} · {a.room}</p>
+      <div className="mt-1.5 flex flex-wrap gap-1">
+        {wait !== null && <Badge tone={wait > 20 ? "warning" : "teal"} icon={Clock}>Waiting {wait} min</Badge>}
+        {a.status === "ready" && <Badge tone="success">Ready</Badge>}
+        {owed > 0 && <Badge tone="warning">Balance {usd(owed)}</Badge>}
+        {p.flags.map((f) => <Badge key={f} tone="neutral" icon={Flag} className="font-medium">{f}</Badge>)}
+      </div>
+      <div className="mt-2.5 flex gap-2">
+        {stage === "checkout"
+          ? <Button size="sm" icon={Receipt} onClick={(e) => onOpen(a.id, e.currentTarget)}>Open checkout</Button>
+          : <PrimaryAction a={a} />}
+      </div>
+    </li>
+  );
+}
+
+function VisitDrawer({ a, now, onClose, returnFocusRef }: { a: Appointment; now: number | null; onClose: () => void; returnFocusRef: React.RefObject<HTMLElement | null> }) {
+  const p = patientById(a.patientId);
+  const pr = providerById(a.providerId);
+  const stage = stageOf(a);
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string>();
-  const w = waitMins(a, now);
+  const invoices = balanceFor(a.patientId);
 
   const save = () => {
     if (!note.trim()) { setErr("Enter a note before saving."); return; }
@@ -227,9 +167,10 @@ function AppointmentDrawer({ a, now, onClose, returnFocusRef, onArrive, onReady 
     setNote(""); setErr(undefined);
     toast.success("Note added");
   };
-
-  const arriveReason = a.status === "scheduled" ? undefined : `Already ${STATUS_META[a.status].label.toLowerCase()}`;
-  const readyReason = a.status === "arrived" ? undefined : a.status === "scheduled" ? "Mark the patient Arrived first" : `Already ${STATUS_META[a.status].label.toLowerCase()}`;
+  const checkout = () => {
+    if (completeCheckout(a.id)) { toast.success(`${p.name} checked out`); onClose(); }
+  };
+  const step = (fn: () => boolean, msg: string) => { if (fn()) toast(msg); };
 
   return (
     <Drawer
@@ -240,19 +181,50 @@ function AppointmentDrawer({ a, now, onClose, returnFocusRef, onArrive, onReady 
       sub={<span className="flex flex-wrap items-center gap-2">{fmtSlot(a.time)} · {a.type} · <StatusBadge status={a.status} /></span>}
       footer={
         <div className="flex flex-wrap gap-2">
-          <Button icon={LogIn} variant="outline" onClick={() => onArrive(a)} disabled={!!arriveReason} disabledReason={arriveReason}>Mark arrived</Button>
-          <Button icon={ArrowRight} onClick={() => onReady(a)} disabled={!!readyReason} disabledReason={readyReason}>Move to Ready</Button>
+          {stage === "checkout" ? (
+            <>
+              <Button icon={CheckCircle2} onClick={checkout}>Complete checkout</Button>
+              <Link to="/patient-scheduling" search={{ patient: a.patientId }} className="inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-semibold hover:bg-muted focus-ring"><CalendarPlus className="size-4" aria-hidden /> Book follow-up</Link>
+            </>
+          ) : stage === "done" ? <span className="text-sm text-muted-foreground">This visit is no longer on the board.</span> : <PrimaryAction a={a} size="md" />}
         </div>
       }
     >
       <section className="space-y-4">
+        {stage === "checkout" && (
+          <div>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Checkout</h3>
+            {invoices.length === 0 ? <p className="text-sm text-muted-foreground">No open balance on file.</p> : (
+              <ul className="space-y-1.5">
+                {invoices.map((i) => (
+                  <li key={i.id} className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm">
+                    <span className="tabular-nums">{i.number} · {i.date}</span>
+                    <span className="flex items-center gap-2"><span className="font-semibold tabular-nums">{usd(i.amount)}</span><Badge tone={INVOICE_TONE[i.status]}>{i.status}</Badge></span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">Completing checkout does not mark invoices paid. Take payments in <Link to="/billing" className="font-semibold text-primary underline">Billing</Link>.</p>
+          </div>
+        )}
         <div>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Appointment</h3>
-          <DL items={[["Provider", `${pr.name} · ${pr.role}`], ["Location", a.room], ["Duration", `${a.duration} min`], ["Wait time", w === null ? "—" : `${w} min`], ["Arrived", a.arrivedAt ? fmtTime(a.arrivedAt) : "—"]]} />
+          <DL items={[["Provider", `${pr.name} · ${pr.role}`], ["Location", a.room], ["Duration", `${a.duration} min`], ["Arrived", a.arrivedAt ? fmtTime(a.arrivedAt) : "—"], ["Waiting", stage === "waiting" ? `${mins(a.arrivedAt, now) ?? 0} min` : "—"]]} />
         </div>
         <div>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Patient</h3>
           <DL items={[["DOB", p.dob], ["MRN", p.mrn], ["Phone", p.phone], ["Insurance", p.insurance], ["Indicators", p.flags.length ? <span className="flex flex-wrap gap-1">{p.flags.map((f) => <Badge key={f} icon={Flag}>{f}</Badge>)}</span> : "None on file"]]} />
+          <Link to="/patients" className="mt-2 inline-block text-sm font-semibold text-primary underline">Open patient records</Link>
+        </div>
+        <div>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Other actions</h3>
+          <div className="flex flex-wrap gap-2">
+            {stage !== "expected" && stage !== "done" && <Button size="sm" variant="outline" icon={Undo2} onClick={() => step(() => undoStage(a.id), "Moved back one stage")}>Undo last step</Button>}
+            {stage === "expected" && <Button size="sm" variant="outline" icon={UserX} onClick={() => step(() => setApptStatus(a.id, "no_show"), `${p.name} marked no-show`)}>Mark no-show</Button>}
+            {(stage === "expected" || stage === "waiting") && <Button size="sm" variant="outline" icon={XCircle} onClick={() => step(() => setApptStatus(a.id, "cancelled"), "Appointment cancelled")}>Cancel visit</Button>}
+            <Link to="/patient-scheduling" className="inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm font-semibold hover:bg-muted focus-ring"><CalendarClock className="size-4" aria-hidden /> Reschedule</Link>
+            {stage === "with_provider" && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Stethoscope className="size-3.5" aria-hidden /> With {pr.name}</span>}
+          </div>
         </div>
         <div>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Operational notes</h3>

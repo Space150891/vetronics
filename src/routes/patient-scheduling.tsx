@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/patient-scheduling")({
   head: headFor("Patient Scheduling", "Provider day calendar with bookable slots, utilisation and a find-a-time search."),
+  validateSearch: (s: Record<string, unknown>): { patient?: string } => (typeof s["patient"] === "string" ? { patient: s["patient"] } : {}),
   component: Page,
 });
 
@@ -38,7 +39,8 @@ function Page() {
   const [showCancelled, setShowCancelled] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [book, setBook] = useState<Slot | null>(null);
-  const [findOpen, setFindOpen] = useState(false);
+  const { patient: followUp } = Route.useSearch();
+  const [findOpen, setFindOpen] = useState(!!followUp);
   const providers = pid === "all" ? PROVIDERS : PROVIDERS.filter((p) => p.id === pid);
   const pids = providers.map((p) => p.id);
   const open = d.appts.find((a) => a.id === openId);
@@ -79,7 +81,7 @@ function Page() {
           column={(p) => <Column d={d} date={date} pid={p.id} showCancelled={showCancelled} onAppt={setOpenId} onSlot={(time) => setBook({ providerId: p.id, date, time })} />} />
       )}
       {open && <ApptDrawer d={d} a={open} onClose={() => setOpenId(null)} />}
-      {book && <BookDrawer d={d} slot={book} onClose={() => setBook(null)} />}
+      {book && <BookDrawer d={d} slot={book} patientId={followUp} onClose={() => setBook(null)} />}
       <FindDrawer d={d} open={findOpen} onClose={() => setFindOpen(false)} defaultPid={pid} date={date} onPick={(s) => { setFindOpen(false); setDate(s.date); setBook(s); }} />
     </div>
   );
@@ -135,9 +137,9 @@ function SlotFields({ f, set, patient }: { f: Slot & { duration: number; type: s
   );
 }
 
-function BookDrawer({ d, slot, onClose }: { d: SchedData; slot: Slot; onClose: () => void }) {
+function BookDrawer({ d, slot, onClose, patientId }: { d: SchedData; slot: Slot; onClose: () => void; patientId?: string | undefined }) {
   const t0 = TYPES.find((t) => t.duration === slot.duration) ?? TYPES[0]!;
-  const [f, setF] = useState({ ...slot, type: t0.type, duration: t0.duration, patientId: "" });
+  const [f, setF] = useState({ ...slot, type: t0.type, duration: t0.duration, patientId: patientId && PATIENTS.some((p) => p.id === patientId) ? patientId : "" });
   const [tried, setTried] = useState(false);
   const problem = !f.patientId ? "Choose a patient." : bookingProblem(d, f);
   const save = () => {
