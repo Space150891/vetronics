@@ -126,7 +126,7 @@ export function seedAppointments(today: string): Appointment[] {
     const count = offset === 0 ? 16 : 10 + ((offset + 3) % 4);
     for (let i = 0; i < count; i++) {
       let minutes = 8 * 60 + i * 25 + (offset + 3) * 5;
-      if (minutes + 40 > 12 * 60) minutes += 60; // keep the lunch break free
+      if (minutes + 40 > 12 * 60) minutes = Math.max(minutes + 60, 13 * 60); // keep the lunch break free
       const time = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
       const t = pick(TYPES, i + offset + 6);
       const pIdx = (i * 5 + offset + 18) % PATIENTS.length;
