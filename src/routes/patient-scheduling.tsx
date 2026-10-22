@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/patient-scheduling")({
   head: headFor("Patient Scheduling", "Provider day calendar with bookable slots, utilisation and a find-a-time search."),
-  validateSearch: (s: Record<string, unknown>): { patient?: string } => (typeof s.patient === "string" ? { patient: s.patient } : {}),
+  validateSearch: (s: Record<string, unknown>): { patient?: string } => (typeof s["patient"] === "string" ? { patient: s["patient"] } : {}),
   component: Page,
 });
 
