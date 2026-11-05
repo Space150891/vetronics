@@ -5,12 +5,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Vectronics Provider design system (Itera-derived visual language).
+ * Vectronics Provider design system — "Connected Care" direction.
+ * Pale blue surfaces, vivid blue + quiet teal, connected-node wayfinding.
  * All colours, type, radius and elevation live here as tokens.
  */
 
 @theme inline {
-  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Source Sans 3", "Figtree", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
