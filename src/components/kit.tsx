@@ -12,8 +12,8 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-primary text-primary-foreground shadow-card hover:bg-primary/90",
-        outline: "border border-input bg-card text-foreground shadow-card hover:bg-muted",
+        primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+        outline: "border border-input bg-card text-foreground hover:bg-muted",
         ghost: "text-foreground hover:bg-muted",
         link: "text-primary hover:underline px-0",
         danger: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
@@ -116,7 +116,7 @@ export function Field({ label, htmlFor, error, hint, children }: { label: string
 
 /* ---------- Card ---------- */
 export function Card({ className, ...p }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-lg border bg-card text-card-foreground shadow-card", className)} {...p} />;
+  return <div className={cn("rounded-lg border bg-card text-card-foreground", className)} {...p} />;
 }
 export function CardHeader({ title, sub, action }: { title: string; sub?: string | undefined; action?: React.ReactNode }) {
   return (
@@ -156,6 +156,8 @@ const dot: Record<Tone, string> = {
   teal: "bg-st-teal",
   neutral: "bg-st-neutral",
 };
+export const statusClasses = (status: Status) => toneCls[STATUS_META[status].tone];
+
 export function StatusBadge({ status }: { status: Status }) {
   const m = STATUS_META[status];
   return (
@@ -265,12 +267,12 @@ export function Drawer({ open, onOpenChange, title, sub, children, footer, retur
 /* ---------- Page header ---------- */
 export function PageHeader({ title, sub, actions }: { title: string; sub?: React.ReactNode | undefined; actions?: React.ReactNode }) {
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:justify-between">
       <div className="min-w-0">
         <h1 className="text-[26px] font-bold leading-tight tracking-tight">{title}</h1>
         {sub && <p className="mt-1 text-sm text-muted-foreground">{sub}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
   );
 }

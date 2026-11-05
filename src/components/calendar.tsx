@@ -4,11 +4,12 @@ import { Button, Select } from "./kit";
 import { cn } from "@/lib/utils";
 import { PROVIDERS, addDays, isoDate, nums, type Provider } from "@/lib/fixtures";
 import { toTime } from "@/lib/schedule";
+import { CLINIC_LOCALE, clinicDate } from "@/lib/display";
 
 export const HOUR_PX = 56;
 export const PX = HOUR_PX / 60;
 
-export const longDate = (d: string) => { const [y, m, day] = nums(d, "-"); const dt = new Date(y, m - 1, day); return `${dt.getDate()} ${dt.toLocaleDateString("en-GB", { month: "long" })} · ${dt.toLocaleDateString("en-GB", { weekday: "long" })}, ${y}`; };
+export const longDate = (d: string) => clinicDate(d, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 const sundayOf = (d: string) => { const [y, m, day] = nums(d, "-"); return addDays(d, -new Date(y, m - 1, day).getDay()); };
 
 export function WeekStrip({ selected, onSelect, summary }: { selected: string; onSelect: (d: string) => void; summary: (d: string) => React.ReactNode }) {
@@ -16,7 +17,7 @@ export function WeekStrip({ selected, onSelect, summary }: { selected: string; o
   const start = sundayOf(selected);
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   return (
-    <div className="mb-3 flex items-stretch gap-2">
+    <div className="mb-2 flex items-stretch gap-2">
       <Button variant="outline" size="icon" className="h-auto self-center" aria-label="Previous week" onClick={() => onSelect(addDays(selected, -7))}><ChevronLeft /></Button>
       <div className="grid min-w-0 flex-1 grid-cols-7 gap-1.5 overflow-x-auto">
         {days.map((d) => {
@@ -25,13 +26,13 @@ export function WeekStrip({ selected, onSelect, summary }: { selected: string; o
           const sel = d === selected;
           return (
             <button key={d} onClick={() => onSelect(d)} aria-pressed={sel} aria-label={longDate(d)}
-              className={cn("min-w-[84px] rounded-lg border px-2 py-2 text-center text-xs transition-colors focus-ring", sel ? "border-primary bg-card ring-2 ring-primary/30" : "border-transparent bg-surface hover:bg-muted")}>
+              className={cn("min-w-[74px] rounded-md border px-1.5 py-1 text-center text-xs transition-colors focus-ring", sel ? "border-primary bg-accent ring-1 ring-primary/30" : "border-transparent bg-surface hover:bg-muted")}>
               <span className="flex items-center justify-center gap-1 font-semibold text-foreground">
-                {dt.toLocaleDateString("en-GB", { weekday: "short" })}
+                {dt.toLocaleDateString(CLINIC_LOCALE, { weekday: "short" })}
                 {d === today && <span className="rounded bg-st-warning-bg px-1 text-[10px] font-bold text-st-warning">Today</span>}
               </span>
-              <span className="my-1 block min-h-5 font-semibold">{summary(d)}</span>
-              <span className="block text-muted-foreground">{dt.getDate()} {dt.toLocaleDateString("en-GB", { month: "short" })}</span>
+              <span className="my-0.5 block font-semibold">{summary(d)}</span>
+              <span className="block text-muted-foreground">{clinicDate(d, { month: "short", day: "numeric" })}</span>
             </button>
           );
         })}
@@ -52,9 +53,9 @@ export function ProviderFilter({ value, onChange }: { value: string; onChange: (
 
 export function ViewBar({ view, onView, date, onToday }: { view: "day" | "month"; onView: (v: "day" | "month") => void; date: string; onToday: () => void }) {
   const [y, m, d] = nums(date, "-");
-  const heading = view === "day" ? longDate(date) : new Date(y, m - 1, d).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const heading = view === "day" ? longDate(date) : new Date(y, m - 1, d).toLocaleDateString(CLINIC_LOCALE, { month: "long", year: "numeric" });
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-3 rounded-xl border bg-card px-3 py-2 shadow-card">
+    <div className="mb-2 grid grid-cols-[auto_auto] items-center gap-x-2 gap-y-1 border-y py-1.5 sm:grid-cols-[auto_auto_minmax(0,1fr)]">
       <div role="tablist" aria-label="Calendar view" className="flex rounded-lg border p-0.5">
         {(["day", "month"] as const).map((v) => (
           <button key={v} role="tab" aria-selected={view === v} onClick={() => onView(v)}
@@ -62,7 +63,7 @@ export function ViewBar({ view, onView, date, onToday }: { view: "day" | "month"
         ))}
       </div>
       <Button size="sm" variant="outline" onClick={onToday}>Today</Button>
-      <h2 className="flex-1 text-center text-base font-bold" aria-live="polite">{heading}</h2>
+      <h2 className="col-span-2 min-w-0 text-sm font-bold sm:col-span-1 sm:text-right" aria-live="polite">{heading}</h2>
     </div>
   );
 }
@@ -79,7 +80,7 @@ export function DayGrid({ providers, startMin, endMin, header, column }: {
   const hours = Array.from({ length: (endMin - startMin) / 60 }, (_, i) => startMin + i * 60);
   const h = (endMin - startMin) * PX;
   return (
-    <div className="max-h-[70vh] overflow-auto rounded-xl border bg-card shadow-card">
+    <div className="max-h-[70vh] overflow-auto rounded-lg border bg-card">
       <div className="grid" style={{ gridTemplateColumns: `56px repeat(${providers.length}, minmax(220px, 1fr))` }}>
         <div className="sticky left-0 top-0 z-30 border-b border-r bg-card" />
         {providers.map((p) => <div key={p.id} className="sticky top-0 z-20 flex items-center justify-center gap-2 border-b border-r bg-card px-2 py-2 last:border-r-0">{header(p)}</div>)}
@@ -113,7 +114,7 @@ export function MonthGrid({ selected, onSelect, cell }: { selected: string; onSe
   const days = Array.from({ length: 42 }, (_, i) => addDays(start, i));
   const today = isoDate(new Date());
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card shadow-card">
+    <div className="overflow-x-auto rounded-lg border bg-card">
       <div className="grid min-w-[640px] grid-cols-7">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d} className="border-b bg-surface px-2 py-1.5 text-xs font-semibold uppercase text-muted-foreground">{d}</div>)}
         {days.map((d) => {

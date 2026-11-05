@@ -71,7 +71,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   /* Connected Care palette: #F2F7FC canvas, #1267D6 blue, #147D85 teal,
      #1D2C3B ink, #51687C muted, #D8E5F0 lines, #EAF2FA sidebar */
   --background: oklch(0.972 0.008 240);
@@ -189,7 +189,9 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    letter-spacing: 0;
   }
+  .tracking-tight { letter-spacing: 0; }
   :focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
