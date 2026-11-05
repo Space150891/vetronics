@@ -396,7 +396,7 @@ function DrCard({ a, appt, now, onPatient }: { a: boolean; appt: Appointment; no
         <span key={f} className="inline-flex items-center gap-1 rounded-md border border-[var(--dr-line)] px-1.5 py-0.5 text-xs font-medium text-[var(--dr-muted)]">
           <Flag className="size-3.5" aria-hidden /> {f}
         </span>
-      )}
+      ))}
     </>
   );
 
