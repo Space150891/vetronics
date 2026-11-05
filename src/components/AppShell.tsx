@@ -56,11 +56,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={n.to}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[14px] font-medium transition-colors focus-ring",
-                  active ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-card" : "text-sidebar-foreground hover:bg-sidebar-accent/60",
+                  "relative flex items-center gap-2.5 rounded-full px-3 py-2 text-[14px] font-medium transition-colors focus-ring",
+                  active ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-card" : "text-sidebar-foreground hover:bg-sidebar-accent/10",
                 )}
               >
-                {active && <span className="absolute -left-2.5 size-2.5 rounded-full border-2 border-sidebar-primary bg-sidebar-accent" aria-hidden />}
                 <n.icon className="size-[18px] shrink-0" aria-hidden />
                 <span className="truncate">{n.label}</span>
               </Link>
