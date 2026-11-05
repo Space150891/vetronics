@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CalendarPlus, CalendarClock, Clock, Flag, LogIn, Plus, Receipt, Stethoscope, Undo2, UserX, XCircle, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CalendarPlus, CalendarClock, Clock, Flag, GripVertical, LogIn, Plus, Receipt, Stethoscope, Undo2, UserX, XCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge, Button, Drawer, DL, Field, StatusBadge, Textarea } from "@/components/kit";
 import { ProviderFilter } from "@/components/calendar";
 import { nums, CURRENT_USER, isoDate, patientById, providerById, type Appointment } from "@/lib/fixtures";
 import { INVOICES, INVOICE_TONE, usd } from "@/lib/patient-data";
-import { addNote, completeCheckout, finishVisit, markArrived, sendToProvider, setApptStatus, stageOf, undoStage, useStore, type Stage } from "@/lib/store";
+import { addNote, completeCheckout, finishVisit, markArrived, peekAppointments, sendToProvider, setApptStatus, stageOf, undoStage, useStore, type Stage } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { clinicDate } from "@/lib/display";
 
@@ -31,6 +31,9 @@ const COLUMNS: { key: BoardStage; title: string; sub: string }[] = [
   { key: "with_provider", title: "With provider", sub: "In the room now." },
   { key: "checkout", title: "Ready to check out", sub: "Finished. Settle the bill and book anything next." },
 ];
+/** Only the forward moves the existing workflow actions support — no backward or skipped stages. */
+const NEXT_STAGE: Record<BoardStage, BoardStage | null> = { expected: "waiting", waiting: "with_provider", with_provider: "checkout", checkout: null };
+const stageTitle = (s: BoardStage) => COLUMNS.find((c) => c.key === s)!.title;
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
