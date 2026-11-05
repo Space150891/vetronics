@@ -1,5 +1,4 @@
-import { createFileRoute, createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router";
-import { QueryClient } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -7,7 +6,7 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 import { NAV } from "@/components/AppShell";
-import { routeTree } from "@/routeTree.gen";
+import { Route as FrontDeskRoute } from "./index";
 import { CLINIC, CURRENT_USER, PROVIDERS, isoDate, nums, patientById, providerById, type Appointment } from "@/lib/fixtures";
 import { INVOICES, usd } from "@/lib/patient-data";
 import { stageOf, useStore, type Stage } from "@/lib/store";
@@ -33,15 +32,9 @@ export const Route = createFileRoute("/design-review")({
   component: DesignReview,
 });
 
-/* A second router instance so "Current" renders the real Front Desk page untouched.
-   Memory history pinned to "/" — otherwise it would match the browser URL (/design-review)
-   and recurse into this page. */
-const previewRouter = createRouter({
-  routeTree,
-  defaultPreload: false,
-  context: { queryClient: new QueryClient() },
-  history: createMemoryHistory({ initialEntries: ["/"] }),
-});
+/* "Current" renders the real Front Desk page component directly — the outer AppShell
+   already provides the chrome, and its Links resolve against the live router. */
+const FrontDeskBoard = FrontDeskRoute.options.component!;
 
 type View = "current" | "a" | "b";
 const VIEWS: { key: View; label: string }[] = [
@@ -74,12 +67,7 @@ function DesignReview() {
         </div>
         <span className="ml-auto text-xs text-muted-foreground">Preview only — actions here never change demo data.</span>
       </div>
-      {view === "current" ? (
-        /* key resets the inner router when leaving and returning to "Current". */
-        <RouterProvider key={view} router={previewRouter} />
-      ) : (
-        <ConceptBoard variant={view} />
-      )}
+      {view === "current" ? <FrontDeskBoard /> : <ConceptBoard variant={view} />}
     </div>
   );
 }
