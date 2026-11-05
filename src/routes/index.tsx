@@ -145,6 +145,7 @@ function FrontDesk() {
         <Link to="/patient-scheduling" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground focus-ring"><Plus className="size-4" aria-hidden /> Book appointment</Link>
       </div>
       <div className="mb-4"><ProviderFilter value={provider} onChange={setProvider} /></div>
+      <p className="mb-3 text-sm font-semibold" aria-live="polite">{total} {total === 1 ? "visit" : "visits"} on board</p>
 
       <div role="tablist" aria-label="Visit stages" className="mb-3 grid grid-cols-2 gap-1 rounded-lg border bg-card p-1 sm:grid-cols-4 lg:hidden">
         {COLUMNS.map((c) => (
@@ -156,24 +157,43 @@ function FrontDesk() {
       </div>
 
       <div className="relative grid gap-4 lg:grid-cols-4">
-        <span aria-hidden className="absolute left-0 right-0 top-[13px] hidden h-px bg-border lg:block" />
-        {COLUMNS.map((c, ci) => (
-          <section key={c.key} aria-labelledby={`col-${c.key}`} className={cn("min-w-0", tab !== c.key && "hidden lg:block")}>
-            <div className="mb-2 px-1">
-              <div className="relative grid grid-cols-[26px_minmax(0,1fr)_auto] items-center gap-2">
-                <span className="relative z-10 grid size-[26px] shrink-0 place-items-center rounded-full border-2 border-primary bg-card text-[11px] font-bold text-primary" aria-hidden>{ci + 1}</span>
-                <h2 id={`col-${c.key}`} className="text-[15px] font-bold">{c.title}</h2>
-                <span className="ml-auto text-sm tabular-nums text-muted-foreground" aria-label={`${byStage[c.key].length} visits`}>{byStage[c.key].length}</span>
+        <span aria-hidden className="absolute inset-x-2 top-0 hidden h-px bg-border lg:block" />
+        {COLUMNS.map((c) => {
+          const list = byStage[c.key];
+          const isTarget = drag !== null && NEXT_STAGE[drag.stage] === c.key;
+          return (
+            <section key={c.key} data-stage={c.key} aria-labelledby={`col-${c.key}`}
+              className={cn("min-w-0 rounded-lg pt-3 transition-colors", tab !== c.key && "hidden lg:block",
+                drag && drag.stage !== c.key && !isTarget && "opacity-60",
+                isTarget && "ring-2 ring-primary/40 bg-accent/30",
+                isTarget && over === c.key && "ring-primary bg-accent/50")}>
+              <div className="mb-2 px-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 id={`col-${c.key}`} className="text-[15px] font-bold">{c.title}</h2>
+                  <Badge tone="neutral" className="tabular-nums">{list.length} {list.length === 1 ? "visit" : "visits"}</Badge>
+                </div>
+                <p className="mt-1 min-h-8 text-xs text-muted-foreground">{c.sub}</p>
               </div>
-              <p className="mt-1 pl-[34px] text-xs text-muted-foreground">{c.sub}</p>
-            </div>
-            <ul className="space-y-2">
-              {byStage[c.key].length === 0 && <li className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">Nobody here</li>}
-              {byStage[c.key].map((a) => <VisitCard key={a.id} a={a} now={now} selected={openId === a.id} onOpen={openCard} />)}
-            </ul>
-          </section>
-        ))}
+              <ul className="min-h-10 space-y-2 px-1 pb-1">
+                {list.length === 0 && <li className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">Nobody here</li>}
+                {list.map((a) => <VisitCard key={a.id} a={a} now={now} selected={openId === a.id} dragging={drag?.id === a.id} onOpen={openCard} onDragStart={startDrag} />)}
+              </ul>
+            </section>
+          );
+        })}
       </div>
+
+      <p className="sr-only" role="status">{announce}</p>
+      {drag && (() => {
+        const a = appts.find((x) => x.id === drag.id);
+        if (!a) return null;
+        return (
+          <div aria-hidden className="pointer-events-none fixed z-50 w-52 -translate-x-1/2 -translate-y-8 rounded-lg border bg-card p-2.5 shadow-lg" style={{ left: drag.x, top: drag.y }}>
+            <p className="truncate text-sm font-bold">{patientById(a.patientId).name}</p>
+            <p className="text-xs text-muted-foreground">{fmtSlot(a.time)} · {a.type}</p>
+          </div>
+        );
+      })()}
 
       {open && <VisitDrawer a={open} now={now} onClose={() => setOpenId(null)} returnFocusRef={triggerRef} />}
     </div>
