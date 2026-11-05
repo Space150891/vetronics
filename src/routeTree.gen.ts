@@ -14,6 +14,7 @@ import { Route as AddOnsRouteImport } from './routes/add-ons'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as CarePlansRouteImport } from './routes/care-plans'
+import { Route as DesignReviewRouteImport } from './routes/design-review'
 import { Route as InviteEmailRouteImport } from './routes/invite-email'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as PatientRouteImport } from './routes/patient'
@@ -56,6 +57,11 @@ const BillingRoute = BillingRouteImport.update({
 const CarePlansRoute = CarePlansRouteImport.update({
   id: '/care-plans',
   path: '/care-plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignReviewRoute = DesignReviewRouteImport.update({
+  id: '/design-review',
+  path: '/design-review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteEmailRoute = InviteEmailRouteImport.update({
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/appointments': typeof AppointmentsRoute
   '/billing': typeof BillingRoute
   '/care-plans': typeof CarePlansRoute
+  '/design-review': typeof DesignReviewRoute
   '/invite-email': typeof InviteEmailRoute
   '/messages': typeof MessagesRoute
   '/patient': typeof PatientRouteWithChildren
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/appointments': typeof AppointmentsRoute
   '/billing': typeof BillingRoute
   '/care-plans': typeof CarePlansRoute
+  '/design-review': typeof DesignReviewRoute
   '/invite-email': typeof InviteEmailRoute
   '/messages': typeof MessagesRoute
   '/patient-scheduling': typeof PatientSchedulingRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/appointments': typeof AppointmentsRoute
   '/billing': typeof BillingRoute
   '/care-plans': typeof CarePlansRoute
+  '/design-review': typeof DesignReviewRoute
   '/invite-email': typeof InviteEmailRoute
   '/messages': typeof MessagesRoute
   '/patient': typeof PatientRouteWithChildren
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/billing'
     | '/care-plans'
+    | '/design-review'
     | '/invite-email'
     | '/messages'
     | '/patient'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/billing'
     | '/care-plans'
+    | '/design-review'
     | '/invite-email'
     | '/messages'
     | '/patient-scheduling'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/billing'
     | '/care-plans'
+    | '/design-review'
     | '/invite-email'
     | '/messages'
     | '/patient'
@@ -307,6 +319,7 @@ export interface RootRouteChildren {
   AppointmentsRoute: typeof AppointmentsRoute
   BillingRoute: typeof BillingRoute
   CarePlansRoute: typeof CarePlansRoute
+  DesignReviewRoute: typeof DesignReviewRoute
   InviteEmailRoute: typeof InviteEmailRoute
   MessagesRoute: typeof MessagesRoute
   PatientRoute: typeof PatientRouteWithChildren
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/care-plans'
       fullPath: '/care-plans'
       preLoaderRoute: typeof CarePlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-review': {
+      id: '/design-review'
+      path: '/design-review'
+      fullPath: '/design-review'
+      preLoaderRoute: typeof DesignReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite-email': {
@@ -518,6 +538,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppointmentsRoute: AppointmentsRoute,
   BillingRoute: BillingRoute,
   CarePlansRoute: CarePlansRoute,
+  DesignReviewRoute: DesignReviewRoute,
   InviteEmailRoute: InviteEmailRoute,
   MessagesRoute: MessagesRoute,
   PatientRoute: PatientRouteWithChildren,
