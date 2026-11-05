@@ -60,6 +60,11 @@ function FrontDesk() {
   const [tab, setTab] = useState<BoardStage>("expected");
   const [openId, setOpenId] = useState<string | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
+  const [drag, setDrag] = useState<{ id: string; stage: BoardStage; x: number; y: number } | null>(null);
+  const [over, setOver] = useState<BoardStage | null>(null);
+  const [announce, setAnnounce] = useState("");
+  const dragRef = useRef(drag);
+  dragRef.current = drag;
 
   const byStage = useMemo(() => {
     const out: Record<BoardStage, Appointment[]> = { expected: [], waiting: [], with_provider: [], checkout: [] };
@@ -69,9 +74,66 @@ function FrontDesk() {
       .forEach((a) => { const s = stageOf(a); if (s !== "done") out[s].push(a); });
     return out;
   }, [appts, today, provider]);
+  const total = byStage.expected.length + byStage.waiting.length + byStage.with_provider.length + byStage.checkout.length;
 
   const open = appts.find((a) => a.id === openId) ?? null;
   const openCard = (id: string, el: HTMLElement) => { triggerRef.current = el; setOpenId(id); };
+
+  const startDrag = (e: React.PointerEvent, a: Appointment) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    const stage = stageOf(a);
+    if (stage === "done") return;
+    setDrag({ id: a.id, stage, x: e.clientX, y: e.clientY });
+  };
+
+  // Pointer-based drag: the handle starts it, window listeners track it, and the drop
+  // commits through the same store actions as the card buttons (never raw status writes).
+  const dragId = drag?.id ?? null;
+  useEffect(() => {
+    if (!dragId) return;
+    const targetAt = (x: number, y: number) => {
+      const el = document.elementFromPoint(x, y);
+      return (el?.closest?.("[data-stage]") as HTMLElement | null)?.dataset.stage as BoardStage | undefined;
+    };
+    const move = (e: PointerEvent) => {
+      setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
+      setOver(targetAt(e.clientX, e.clientY) ?? null);
+    };
+    const up = (e: PointerEvent) => {
+      const d = dragRef.current;
+      const target = targetAt(e.clientX, e.clientY);
+      setDrag(null);
+      setOver(null);
+      if (!d || !target || target === d.stage) return; // same-column drops never reorder
+      const a = peekAppointments().find((x) => x.id === d.id);
+      if (!a) return;
+      const name = patientById(a.patientId).name;
+      if (target !== NEXT_STAGE[d.stage]) {
+        toast.error(`Can't move ${name} from ${stageTitle(d.stage)} to ${stageTitle(target)}`);
+        return;
+      }
+      const ok =
+        target === "waiting" ? markArrived(a.id)
+        : target === "with_provider" ? sendToProvider(a.id)
+        : finishVisit(a.id);
+      if (ok) {
+        const msg = target === "waiting" ? `${name} checked in` : target === "with_provider" ? `${name} sent to ${providerById(a.providerId).name}` : `${name} ready for checkout`;
+        toast.success(msg);
+        setAnnounce(`${name} moved to ${stageTitle(target)}.`);
+      } else {
+        toast.error(`Couldn't move ${name} — use the button on the card instead`);
+      }
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, [dragId]);
 
   return (
     <div className="mx-auto max-w-[1600px]">
