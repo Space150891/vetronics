@@ -3,13 +3,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AlertTriangle, CalendarSearch, Search, Users } from "lucide-react";
 import { headFor } from "@/components/ListDetail";
-import { Button, DL, Drawer, EmptyState, Field, Input, PageHeader, Select, StatusBadge } from "@/components/kit";
+import { Button, DL, Drawer, EmptyState, Field, Input, PageHeader, Select, StatusBadge, Tip, statusClasses } from "@/components/kit";
 import { Avatar, Blocked, DayGrid, MonthGrid, PX, ProviderFilter, ViewBar, WeekStrip } from "@/components/calendar";
 import { PATIENTS, PROVIDERS, STATUS_META, addDays, isoDate, patientById, providerById, type Appointment, type Status } from "@/lib/fixtures";
 import { CLOSE, LUNCH, OPEN, active, apptInterval, bookable, bookingProblem, dayStats, freeSlots, isClosed, isConflict, shiftsOn, subtract, timeOffOn, toMin, toTime, type SchedData } from "@/lib/schedule";
 import { bookAppointment, markArrived, moveToReady, rescheduleAppt, setApptStatus } from "@/lib/store";
 import { fmtH, useSched } from "@/lib/use-sched";
 import { cn } from "@/lib/utils";
+import { clinicDate, clinicTimestamp } from "@/lib/display";
 
 export const Route = createFileRoute("/patient-scheduling")({
   head: headFor("Patient Scheduling", "Provider day calendar with bookable slots, utilisation and a find-a-time search."),
@@ -23,12 +24,6 @@ const TYPES = [
 ];
 const START = 7 * 60, END = 18 * 60;
 type Slot = { providerId: string; date: string; time: string; duration?: number | undefined };
-
-const blockTone: Partial<Record<Status, string>> = {
-  completed: "border-st-success bg-st-success-bg",
-  cancelled: "border-st-neutral bg-st-neutral-bg opacity-70 line-through",
-  no_show: "border-st-danger bg-st-danger-bg",
-};
 
 function Page() {
   const d = useSched();
@@ -51,7 +46,7 @@ function Page() {
     return (
       <span className="block">
         <span className="tabular-nums">{s.util}%</span>
-        <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden><span className="block h-full bg-primary" style={{ width: `${s.util}%` }} /></span>
+        <span className="mt-0.5 block h-1 overflow-hidden rounded-full bg-muted" aria-hidden><span className="block h-full bg-primary" style={{ width: `${s.util}%` }} /></span>
       </span>
     );
   };
@@ -60,11 +55,11 @@ function Page() {
     <div className="mx-auto max-w-[1440px]">
       <PageHeader title="Patient Scheduling" sub="Bookable time comes from Staff Scheduling, minus breaks, time off and booked visits." actions={<Button icon={Search} onClick={() => setFindOpen(true)}>Find a time</Button>} />
       <WeekStrip selected={date} onSelect={setDate} summary={summary} />
-      <div className="mb-3 flex flex-wrap items-center gap-4">
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <ProviderFilter value={pid} onChange={setPid} />
         <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" role="switch" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} className="size-4" />Show cancelled</label>
-        <ul className="ml-auto flex flex-wrap gap-3 text-xs text-muted-foreground" aria-label="Status legend">
-          {(["scheduled", "completed", "cancelled", "no_show"] as Status[]).map((s) => <li key={s}><StatusBadge status={s} /></li>)}
+        <ul className="flex flex-wrap gap-1 text-xs text-muted-foreground" aria-label="Status legend">
+          {(Object.keys(STATUS_META) as Status[]).map((s) => <li key={s}><StatusBadge status={s} /></li>)}
         </ul>
       </div>
       <ViewBar view={view} onView={setView} date={date} onToday={() => setDate(today)} />
@@ -112,11 +107,14 @@ function Column({ d, date, pid, showCancelled, onAppt, onSlot }: { d: SchedData;
         const i = apptInterval(a);
         const conflict = isConflict(d, a);
         return (
-          <button key={a.id} onClick={() => onAppt(a.id)} className={cn("absolute inset-x-1 z-[5] overflow-hidden rounded-md border-l-4 px-1.5 py-0.5 text-left text-[11px] leading-tight text-foreground shadow-card focus-ring", blockTone[a.status] ?? "border-primary bg-st-info-bg", conflict && "ring-2 ring-st-warning")}
-            style={{ top: (i.s - START) * PX, height: Math.max(a.duration * PX, 18) }}>
-            <span className="font-bold">{patientById(a.patientId).name}</span> <span className="tabular-nums">{a.time} · {a.duration}m</span> · {a.type} · <span className="font-semibold">{STATUS_META[a.status].label}</span>
-            {conflict && <span className="ml-1 font-bold text-st-warning">· Conflict</span>}
-          </button>
+          <Tip key={a.id} label={`${patientById(a.patientId).name} · ${a.time} · ${a.duration} min · ${a.type} · ${STATUS_META[a.status].label} · ${a.room}${conflict ? " · Conflict" : ""}`}>
+            <button onClick={() => onAppt(a.id)} aria-label={`${patientById(a.patientId).name}, ${a.time}, ${a.duration} minutes, ${a.type}, ${STATUS_META[a.status].label}${conflict ? ", Conflict" : ""}`}
+              className={cn("absolute inset-x-1 z-[5] overflow-hidden rounded-sm border-l-4 px-1.5 text-left text-[11px] leading-[12px] focus-ring", statusClasses(a.status), a.status === "cancelled" && "opacity-70", conflict && "ring-2 ring-st-warning")}
+              style={{ top: (i.s - START) * PX, height: a.duration * PX }}>
+              <span className="flex min-w-0 items-center gap-1"><span className="min-w-0 truncate font-bold">{patientById(a.patientId).name}</span><span className="shrink-0 text-[10px] font-semibold">{STATUS_META[a.status].label}</span><span className="ml-auto shrink-0 tabular-nums">{a.time}</span></span>
+              {a.duration >= 30 && <span className="block truncate">{STATUS_META[a.status].label} · {a.duration}m · {a.type}{conflict ? " · Conflict" : ""}</span>}
+            </button>
+          </Tip>
         );
       })}
     </>
@@ -150,7 +148,7 @@ function BookDrawer({ d, slot, onClose, patientId }: { d: SchedData; slot: Slot;
     onClose();
   };
   return (
-    <Drawer open onOpenChange={(o) => !o && onClose()} title="New appointment" sub={`${providerById(f.providerId).name} · ${f.date} ${f.time}`} footer={<div className="flex justify-end gap-2"><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={save}>Book appointment</Button></div>}>
+    <Drawer open onOpenChange={(o) => !o && onClose()} title="New appointment" sub={`${providerById(f.providerId).name} · ${clinicDate(f.date)} ${f.time}`} footer={<div className="flex justify-end gap-2"><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={save}>Book appointment</Button></div>}>
       <div className="space-y-3">
         <SlotFields f={f} set={(p) => setF((x) => ({ ...x, ...p }))} patient />
         {tried && problem && <p role="alert" className="text-sm font-medium text-destructive">{problem}</p>}
@@ -178,7 +176,7 @@ function ApptDrawer({ d, a, onClose }: { d: SchedData; a: Appointment; onClose: 
       ) : (
         <div className="space-y-4">
           {conflict && <p role="alert" className="flex items-start gap-1.5 rounded-lg border border-st-warning/30 bg-st-warning-bg p-3 text-sm text-st-warning"><AlertTriangle className="mt-0.5 size-4 shrink-0" />This visit is outside the provider's current availability. Reschedule or confirm with the provider.</p>}
-          <DL items={[["Date", a.date], ["Time", `${a.time} · ${a.duration} min`], ["Provider", providerById(a.providerId).name], ["Type", a.type], ["Location", a.room], ["Notes", a.notes.length ? a.notes.map((n) => n.text).join("; ") : "—"]]} />
+          <DL items={[["Date", clinicDate(a.date)], ["Time", `${a.time} · ${a.duration} min`], ["Provider", providerById(a.providerId).name], ["Type", a.type], ["Location", a.room], ["Notes", a.notes.length ? a.notes.map((n) => n.text).join("; ") : "—"]]} />
           <div className="flex flex-wrap gap-2">
             {a.status === "scheduled" && <Button size="sm" variant="outline" onClick={() => { markArrived(a.id); toast.success("Marked Arrived"); }}>Mark arrived</Button>}
             {a.status === "arrived" && <Button size="sm" variant="outline" onClick={() => { moveToReady(a.id); toast.success("Moved to Ready"); }}>Move to ready</Button>}
@@ -190,7 +188,7 @@ function ApptDrawer({ d, a, onClose }: { d: SchedData; a: Appointment; onClose: 
           </div>
           <div>
             <h3 className="mb-1 text-sm font-bold">History</h3>
-            <ul className="space-y-1 text-xs text-muted-foreground">{[...a.history].reverse().map((h, i) => <li key={i}>{new Date(h.at).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" })} · {h.text}</li>)}</ul>
+            <ul className="space-y-1 text-xs text-muted-foreground">{[...a.history].reverse().map((h, i) => <li key={i}>{clinicTimestamp(h.at)} · {h.text}</li>)}</ul>
           </div>
         </div>
       )}
@@ -228,7 +226,7 @@ function FindDrawer({ d, open, onClose, defaultPid, date, onPick }: { d: SchedDa
             {results.map((s) => (
               <li key={`${s.providerId}${s.date}${s.time}`}>
                 <button onClick={() => onPick(s)} className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted focus-ring">
-                  <span><span className="font-semibold tabular-nums">{s.date} · {s.time}</span><span className="block text-muted-foreground">{providerById(s.providerId).name}</span></span>
+                  <span><span className="font-semibold tabular-nums">{clinicDate(s.date)} · {s.time}</span><span className="block text-muted-foreground">{providerById(s.providerId).name}</span></span>
                   <span className="text-xs font-semibold text-primary">Book</span>
                 </button>
               </li>
