@@ -11,6 +11,7 @@ import { routeTree } from "@/routeTree.gen";
 import { CLINIC, CURRENT_USER, PROVIDERS, isoDate, nums, patientById, providerById, type Appointment } from "@/lib/fixtures";
 import { INVOICES, usd } from "@/lib/patient-data";
 import { stageOf, useStore, type Stage } from "@/lib/store";
+import { Route as FrontDeskRoute } from "./index";
 import { cn } from "@/lib/utils";
 import "../components/design-review.css";
 
