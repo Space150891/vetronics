@@ -111,7 +111,7 @@ function Column({ d, date, pid, showCancelled, onAppt, onSlot }: { d: SchedData;
             <button onClick={() => onAppt(a.id)} aria-label={`${patientById(a.patientId).name}, ${a.time}, ${a.duration} minutes, ${a.type}, ${STATUS_META[a.status].label}${conflict ? ", Conflict" : ""}`}
               className={cn("absolute inset-x-1 z-[5] overflow-hidden rounded-sm border-l-4 px-1.5 text-left text-[11px] leading-[12px] focus-ring", statusClasses(a.status), a.status === "cancelled" && "opacity-70", conflict && "ring-2 ring-st-warning")}
               style={{ top: (i.s - START) * PX, height: a.duration * PX }}>
-              <span className="flex min-w-0 items-center gap-1"><span className="min-w-0 truncate font-bold">{patientById(a.patientId).name}</span><span className="ml-auto shrink-0 tabular-nums">{a.time}</span></span>
+              <span className="flex min-w-0 items-center gap-1"><span className="min-w-0 truncate font-bold">{patientById(a.patientId).name}</span><span className="shrink-0 text-[10px] font-semibold">{STATUS_META[a.status].label}</span><span className="ml-auto shrink-0 tabular-nums">{a.time}</span></span>
               {a.duration >= 30 && <span className="block truncate">{STATUS_META[a.status].label} · {a.duration}m · {a.type}{conflict ? " · Conflict" : ""}</span>}
             </button>
           </Tip>

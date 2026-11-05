@@ -208,10 +208,10 @@ function NoteEditor({ a, e, onInfo, onClose }: { a: Appointment; e: Encounter; o
           onChange={(ev) => { setText(ev.target.value); pending.current = ev.target.value; setState("saving"); }}
           className="min-h-[260px]" placeholder="Document the visit…" />
         <p className="text-xs" aria-live="polite">
-          {final ? <span className="inline-flex items-center gap-1 text-muted-foreground"><Lock className="size-3" />Finalized {e.finalizedAt ? new Date(e.finalizedAt).toLocaleString() : ""} — read-only</span>
+          {final ? <span className="inline-flex items-center gap-1 text-muted-foreground"><Lock className="size-3" />Finalized {e.finalizedAt ? clinicTimestamp(e.finalizedAt) : ""} — read-only</span>
             : state === "saving" ? <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="size-3 animate-spin" />Saving…</span>
             : state === "error" ? <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="size-3" />Couldn't save. Your text is kept here — try again.</span>
-            : <span className="inline-flex items-center gap-1 text-muted-foreground"><Check className="size-3" />Saved {new Date(e.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>}
+            : <span className="inline-flex items-center gap-1 text-muted-foreground"><Check className="size-3" />Saved {new Date(e.savedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>}
         </p>
       </div>
       {!final && (
