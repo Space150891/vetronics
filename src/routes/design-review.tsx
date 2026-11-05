@@ -1,4 +1,4 @@
-import { createFileRoute, createRouter, RouterProvider } from "@tanstack/react-router";
+import { createFileRoute, createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useState } from "react";
@@ -11,7 +11,6 @@ import { routeTree } from "@/routeTree.gen";
 import { CLINIC, CURRENT_USER, PROVIDERS, isoDate, nums, patientById, providerById, type Appointment } from "@/lib/fixtures";
 import { INVOICES, usd } from "@/lib/patient-data";
 import { stageOf, useStore, type Stage } from "@/lib/store";
-import { Route as FrontDeskRoute } from "./index";
 import { cn } from "@/lib/utils";
 import "../components/design-review.css";
 
@@ -34,16 +33,14 @@ export const Route = createFileRoute("/design-review")({
   component: DesignReview,
 });
 
-const FrontDeskBoard = FrontDeskRoute.options.component!;
-
 /* A second router instance so "Current" renders the real Front Desk page untouched.
-   defaultComponent bypasses AppShell (the outer shell already provides it), avoiding nesting. */
+   Memory history pinned to "/" — otherwise it would match the browser URL (/design-review)
+   and recurse into this page. */
 const previewRouter = createRouter({
   routeTree,
   defaultPreload: false,
   context: { queryClient: new QueryClient() },
-  defaultComponent: FrontDeskBoard,
-  defaultNotFoundComponent: FrontDeskBoard,
+  history: createMemoryHistory({ initialEntries: ["/"] }),
 });
 
 type View = "current" | "a" | "b";
