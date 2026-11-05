@@ -94,7 +94,7 @@ function FrontDesk() {
     if (!dragId) return;
     const targetAt = (x: number, y: number) => {
       const el = document.elementFromPoint(x, y);
-      return (el?.closest?.("[data-stage]") as HTMLElement | null)?.dataset.stage as BoardStage | undefined;
+      return (el?.closest?.("[data-stage]") as HTMLElement | null)?.dataset["stage"] as BoardStage | undefined;
     };
     const move = (e: PointerEvent) => {
       setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
