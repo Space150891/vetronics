@@ -42,7 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full">
-      <aside className="sticky top-0 hidden h-screen w-[232px] shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden h-dvh w-[232px] shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
         <div className="border-b border-sidebar-border px-4 pb-4 pt-5">
           <Wordmark />
           <p className="mt-1.5 text-[13px] font-medium text-sidebar-muted">Provider Portal</p>
@@ -73,7 +73,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col md:ml-[232px]">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-card/95 px-4 backdrop-blur lg:px-6">
           <nav aria-label="Main mobile" className="md:hidden">
             <select
