@@ -10,6 +10,6 @@ Presentation-only pass. No functional/data file changes (fixtures, store, schedu
 - [x] Restyle Patients & Visit Notes: selected-row treatment (stronger accent + inset bar)
 - [x] Kit primitives (kit.tsx): card radius aligned to 10px system
 - [x] Extend /design-review: applied/before views, component-state overview, design decisions, open questions
-- [ ] Verify: front desk journey, calendar nav/filter, patient select + note save/resume, sidebar persistence, desktop/tablet/phone, keyboard, contrast
-- [ ] Run existing tests; confirm no functional/data files changed (diff check)
-- [ ] Update AGENTS.md architecture note if structure changed
+- [x] Verify: front desk journey (check-in 7→6), patient pop-up open/Escape, scheduling + patients render, sidebar persists, phone 390px no overflow, no page errors
+- [x] Run existing tests (15/15 pass); build OK; only presentation files changed (styles.css, __root, AppShell, index, kit, calendar, ListDetail, design-review)
+- [x] Update AGENTS.md architecture note
