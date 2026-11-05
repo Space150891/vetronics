@@ -105,7 +105,6 @@ function FrontDesk() {
       const target = targetAt(e.clientX, e.clientY);
       setDrag(null);
       setOver(null);
-      console.log("[drag-drop]", JSON.stringify({ stage: d?.stage, target })); // TEMP debug
       if (!d || !target || target === d.stage) return; // same-column drops never reorder
       const a = peekAppointments().find((x) => x.id === d.id);
       if (!a) return;
