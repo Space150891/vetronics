@@ -8,6 +8,7 @@ import { nums, CURRENT_USER, isoDate, patientById, providerById, type Appointmen
 import { INVOICES, INVOICE_TONE, usd } from "@/lib/patient-data";
 import { addNote, completeCheckout, finishVisit, markArrived, sendToProvider, setApptStatus, stageOf, undoStage, useStore, type Stage } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { clinicDate } from "@/lib/display";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -94,7 +95,7 @@ function FrontDesk() {
         {COLUMNS.map((c, ci) => (
           <section key={c.key} aria-labelledby={`col-${c.key}`} className={cn("min-w-0", tab !== c.key && "hidden lg:block")}>
             <div className="mb-2 px-1">
-              <div className="relative flex items-center gap-2">
+              <div className="relative grid grid-cols-[26px_minmax(0,1fr)_auto] items-center gap-2">
                 <span className="relative z-10 grid size-[26px] shrink-0 place-items-center rounded-full border-2 border-primary bg-card text-[11px] font-bold text-primary" aria-hidden>{ci + 1}</span>
                 <h2 id={`col-${c.key}`} className="text-[15px] font-bold">{c.title}</h2>
                 <span className="ml-auto text-sm tabular-nums text-muted-foreground" aria-label={`${byStage[c.key].length} visits`}>{byStage[c.key].length}</span>
@@ -132,14 +133,15 @@ function VisitCard({ a, now, selected, onOpen }: { a: Appointment; now: number |
   const wait = stage === "waiting" ? mins(a.arrivedAt, now) : null;
   const owed = stage === "checkout" ? balanceFor(a.patientId).reduce((n, i) => n + i.amount, 0) : 0;
   return (
-    <li className={cn("rounded-lg border bg-card p-3 shadow-card", selected && "border-primary ring-1 ring-primary")}>
-      <div className="flex items-start justify-between gap-2">
+    <li className={cn("rounded-lg border bg-card p-3", selected && "border-primary ring-1 ring-primary")}>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <button className="min-w-0 rounded text-left font-semibold text-primary hover:underline focus-ring" onClick={(e) => onOpen(a.id, e.currentTarget)}>
-          <span className="block truncate">{p.name}</span>
+          <span className="block break-words text-[15px] font-bold leading-tight">{p.name}</span>
         </button>
         <span className="shrink-0 rounded-md bg-st-info-bg px-1.5 py-0.5 text-sm font-bold tabular-nums text-st-info">{fmtSlot(a.time)}</span>
       </div>
-      <p className="truncate text-xs text-muted-foreground">{pr.name} · {a.type} · {a.room}</p>
+      <p className="mt-1 text-xs font-semibold">{pr.name}</p>
+      <p className="text-xs text-muted-foreground">{a.type} · <span className="font-medium text-foreground">{a.room}</span></p>
       <div className="mt-1.5 flex flex-wrap gap-1">
         {wait !== null && <Badge tone={wait > 20 ? "warning" : "teal"} icon={Clock}>Waiting {wait} min</Badge>}
         {a.status === "ready" && <Badge tone="success">Ready</Badge>}
@@ -200,7 +202,7 @@ function VisitDrawer({ a, now, onClose, returnFocusRef }: { a: Appointment; now:
               <ul className="space-y-1.5">
                 {invoices.map((i) => (
                   <li key={i.id} className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm">
-                    <span className="tabular-nums">{i.number} · {i.date}</span>
+                    <span className="tabular-nums">{i.number} · {clinicDate(i.date)}</span>
                     <span className="flex items-center gap-2"><span className="font-semibold tabular-nums">{usd(i.amount)}</span><Badge tone={INVOICE_TONE[i.status]}>{i.status}</Badge></span>
                   </li>
                 ))}
@@ -215,7 +217,7 @@ function VisitDrawer({ a, now, onClose, returnFocusRef }: { a: Appointment; now:
         </div>
         <div>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Patient</h3>
-          <DL items={[["DOB", p.dob], ["MRN", p.mrn], ["Phone", p.phone], ["Insurance", p.insurance], ["Indicators", p.flags.length ? <span className="flex flex-wrap gap-1">{p.flags.map((f) => <Badge key={f} icon={Flag}>{f}</Badge>)}</span> : "None on file"]]} />
+          <DL items={[["DOB", clinicDate(p.dob)], ["MRN", p.mrn], ["Phone", p.phone], ["Insurance", p.insurance], ["Indicators", p.flags.length ? <span className="flex flex-wrap gap-1">{p.flags.map((f) => <Badge key={f} icon={Flag}>{f}</Badge>)}</span> : "None on file"]]} />
           <Link to="/patients" className="mt-2 inline-block text-sm font-semibold text-primary underline">Open patient records</Link>
         </div>
         <div>
