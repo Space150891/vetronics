@@ -5,6 +5,14 @@ import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/patient")({
+  head: () => ({ meta: [
+    { title: "Patient Portal · Vectronics" },
+    { name: "description", content: "Your Vectronics appointments, messages and care records." },
+    { property: "og:title", content: "Patient Portal · Vectronics" },
+    { property: "og:description", content: "Your Vectronics appointments, messages and care records." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: PatientLayout,
 });
 

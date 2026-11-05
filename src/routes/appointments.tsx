@@ -10,6 +10,7 @@ import { finalizeEncounter, saveEncounter, startEncounter, useStore, type Encoun
 import { NOTE_META, noteStatus, overdue, startMs, upcoming, type NoteStatus } from "@/lib/visits";
 import { cn } from "@/lib/utils";
 import { CalendarCheck } from "lucide-react";
+import { clinicDate, clinicTimestamp } from "@/lib/display";
 
 export const Route = createFileRoute("/appointments")({
   head: headFor("Appointments", "Upcoming patients, outstanding visit notes and the appointment list."),
@@ -63,6 +64,7 @@ function Page() {
   const open = (id: string) => { startEncounter(id); navigate({ search: { note: id } }); };
   const view = (id: string) => (encounters[id] ? navigate({ search: { note: id } }) : open(id));
   const openAppt = openNote ? appts.find((a) => a.id === openNote) : undefined;
+  const openEncounter = openAppt ? encounters[openAppt.id] : undefined;
 
   const action = (a: Appointment) => {
     const s = ns(a);
@@ -84,8 +86,8 @@ function Page() {
       </div>
 
       {featured ? (
-        <Card className="mb-3 border-primary/30 bg-accent/60 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+        <section className="mb-4 border-y border-primary/30 bg-accent/60 px-4 py-3">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-accent-foreground">Next scheduled · {rel(startMs(featured), now)}</p>
               <Name a={featured} className="mt-1 text-xl" />
@@ -95,34 +97,34 @@ function Page() {
             <Button onClick={() => open(featured.id)}>{encounters[featured.id] ? "Resume appointment" : "Start appointment"}</Button>
           </div>
           {next.length > 1 && (
-            <ul className="mt-3 divide-y rounded-lg border bg-card">
+            <ul className="mt-3 divide-y border-t border-primary/20">
               {next.slice(1, 3).map((a) => (
-                <li key={a.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                <li key={a.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-2">
                   <span className="min-w-0"><Name a={a} className="text-sm" /><span className="block truncate text-xs text-muted-foreground">{when(a)} · {providerById(a.providerId).name} · {rel(startMs(a), now)}</span></span>
                   {action(a)}
                 </li>
               ))}
             </ul>
           )}
-        </Card>
+        </section>
       ) : (
         <Card className="mb-3 p-4 text-sm text-muted-foreground">No upcoming appointments for this filter.</Card>
       )}
 
       {(late.length > 0 || outstanding.length > 0) && (
         <div className="mb-3 grid gap-3 md:grid-cols-2">
-          <Card className="p-3">
+          <section className="min-w-0 border-l-2 border-st-warning pl-3 py-1">
             <h2 className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold"><AlertCircle className="size-4 text-st-warning" aria-hidden />Overdue today <span className="text-muted-foreground">{late.length}</span></h2>
             {late.length === 0 ? <p className="text-xs text-muted-foreground">Nobody running late.</p> : (
               <ul className="space-y-1">{late.slice(0, 4).map((a) => <li key={a.id} className="flex items-center justify-between gap-2 text-sm"><span className="min-w-0 truncate"><Name a={a} /> <span className="text-xs text-muted-foreground">{a.time} · {rel(startMs(a), now)}</span></span>{action(a)}</li>)}</ul>
             )}
-          </Card>
-          <Card className="p-3">
+          </section>
+          <section className="min-w-0 border-l-2 border-st-teal pl-3 py-1">
             <h2 className="mb-1.5 text-sm font-semibold">Outstanding notes <span className="text-muted-foreground">{outstanding.length}</span></h2>
             {outstanding.length === 0 ? <p className="text-xs text-muted-foreground">All notes are finalized.</p> : (
-              <ul className="space-y-1">{outstanding.slice(0, 4).map((a) => <li key={a.id} className="flex items-center justify-between gap-2 text-sm"><span className="min-w-0 truncate"><Name a={a} /> <span className="text-xs text-muted-foreground">{a.date}</span></span><span className="flex items-center gap-2"><NoteBadge s={ns(a)} />{action(a)}</span></li>)}</ul>
+               <ul className="space-y-1">{outstanding.slice(0, 4).map((a) => <li key={a.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-sm"><span className="min-w-0"><Name a={a} /> <span className="block text-xs text-muted-foreground">{clinicDate(a.date)}</span></span><span className="flex flex-wrap justify-end gap-1"><NoteBadge s={ns(a)} />{action(a)}</span></li>)}</ul>
             )}
-          </Card>
+          </section>
         </div>
       )}
 
@@ -141,17 +143,17 @@ function Page() {
             {list.length === 0 ? <EmptyState icon={CalendarCheck} title="No appointments match" body="Clear the search or show finalized notes." /> : (
               <ul className="divide-y">
                 {list.map((a) => (
-                  <li key={a.id} className={cn("flex items-center justify-between gap-3 px-3 py-2", openNote === a.id && "bg-accent/60")}>
+                  <li key={a.id} className={cn("grid items-center gap-2 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto]", openNote === a.id && "border-l-2 border-primary bg-accent/60")}>
                     <span className="min-w-0"><Name a={a} className="text-sm" /><span className="block truncate text-xs text-muted-foreground">{when(a)} · {providerById(a.providerId).name} · {a.type}</span></span>
-                    <span className="flex shrink-0 items-center gap-2"><span className="hidden sm:inline"><StatusBadge status={a.status} /></span><NoteBadge s={ns(a)} />{action(a)}</span>
+                    <span className="flex shrink-0 flex-wrap items-center gap-1.5"><StatusBadge status={a.status} /><NoteBadge s={ns(a)} />{action(a)}</span>
                   </li>
                 ))}
               </ul>
             )}
           </Card>
         </div>
-        {openAppt && encounters[openAppt.id] && (
-          <NoteEditor key={openAppt.id} a={openAppt} e={encounters[openAppt.id]!} onInfo={() => setInfo(openAppt.patientId)} onClose={() => navigate({ search: {} })} />
+        {openAppt && openEncounter && (
+          <NoteEditor key={openAppt.id} a={openAppt} e={openEncounter} onInfo={() => setInfo(openAppt.patientId)} onClose={() => navigate({ search: {} })} />
         )}
       </div>
 

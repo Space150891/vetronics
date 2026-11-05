@@ -17,6 +17,10 @@ export const Route = createFileRoute("/design-review")({
     meta: [
       { title: "Design review · Vectronics" },
       { name: "description", content: "Internal design exploration: two visual concepts for the Vectronics Provider Portal." },
+      { property: "og:title", content: "Design review · Vectronics" },
+      { property: "og:description", content: "Internal design exploration: two visual concepts for the Vectronics Provider Portal." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
     links: [

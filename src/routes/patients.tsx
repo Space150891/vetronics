@@ -4,6 +4,7 @@ import { ListDetailPage, headFor } from "@/components/ListDetail";
 import { Badge, DL, StatusBadge } from "@/components/kit";
 import { PATIENTS, providerById, type Patient } from "@/lib/fixtures";
 import { useStore } from "@/lib/store";
+import { clinicDate } from "@/lib/display";
 
 export const Route = createFileRoute("/patients")({
   head: headFor("Patients and Visit Notes", "Searchable patient list with record and visit note preview."),
@@ -23,23 +24,23 @@ function Page() {
       searchPlaceholder="Name, DOB, phone or MRN"
       columns={[
         { label: "Patient", render: (p) => <span className="font-semibold">{p.name}</span> },
-        { label: "DOB", render: (p) => p.dob },
+        { label: "DOB", render: (p) => clinicDate(p.dob) },
         { label: "MRN", render: (p) => <span className="tabular-nums text-muted-foreground">{p.mrn}</span> },
         { label: "Insurance", render: (p) => p.insurance },
-        { label: "Last visit", render: (p) => p.lastVisit },
+        { label: "Last visit", render: (p) => clinicDate(p.lastVisit) },
       ]}
       previewTitle={(p) => p.name}
       preview={(p) => {
         const visits = appts.filter((a) => a.patientId === p.id).sort((a, b) => b.date.localeCompare(a.date));
         return (
           <div className="space-y-4">
-            <DL items={[["DOB", p.dob], ["MRN", p.mrn], ["Phone", p.phone], ["Email", p.email], ["Insurance", p.insurance], ["Indicators", p.flags.length ? <span className="flex flex-wrap gap-1">{p.flags.map((f) => <Badge key={f} icon={Flag}>{f}</Badge>)}</span> : "None on file"]]} />
+            <DL items={[["DOB", clinicDate(p.dob)], ["MRN", p.mrn], ["Phone", p.phone], ["Email", p.email], ["Insurance", p.insurance], ["Indicators", p.flags.length ? <span className="flex flex-wrap gap-1">{p.flags.map((f) => <Badge key={f} icon={Flag}>{f}</Badge>)}</span> : "None on file"]]} />
             <div>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Visits</h3>
-              <ul className="space-y-1.5">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-bold"><span aria-hidden className="size-2 rounded-full border-2 border-primary" />Visits</h3>
+              <ul className="divide-y border-y">
                 {visits.slice(0, 5).map((v) => (
-                  <li key={v.id} className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm">
-                    <span><span className="font-medium">{v.date}</span> · {v.type}<br /><span className="text-xs text-muted-foreground">{providerById(v.providerId).name}</span></span>
+                  <li key={v.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-2 text-sm">
+                    <span className="min-w-0"><span className="block font-semibold">{clinicDate(v.date)}</span><span className="block text-xs text-muted-foreground">{v.type} · {providerById(v.providerId).name}</span></span>
                     <StatusBadge status={v.status} />
                   </li>
                 ))}

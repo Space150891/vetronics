@@ -69,7 +69,7 @@ export function ListDetailPage<T extends { id: string }>({
         <Card className="h-fit lg:sticky lg:top-[72px]" aria-live="polite">
           {sel ? (
             <>
-              <div className="border-b px-4 py-3"><h2 className="text-[15px] font-bold">{previewTitle(sel)}</h2></div>
+              <div className="border-b border-primary/20 bg-accent/40 px-4 py-3"><h2 className="text-lg font-bold">{previewTitle(sel)}</h2></div>
               <div className="p-4">{preview(sel)}</div>
             </>
           ) : (
