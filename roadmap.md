@@ -1,4 +1,12 @@
-# Roadmap — Develop Concept B (Connected Care) across the portal
+# Roadmap — Connected Care client evaluation
+
+- [ ] Refine Front Desk visit hierarchy without hiding critical information.
+- [ ] Compact Patient Scheduling controls and make short visits readable at their true duration.
+- [ ] Align Appointments summaries and refine patient records / visit history.
+- [ ] Unify appointment status presentation and clinic date display.
+- [ ] Verify desktop/tablet layout, keyboard focus, interactions and existing tests.
+
+## Previous presentation pass
 
 Presentation-only pass. No functional/data file changes (fixtures, store, schedule, visits, staff-chat stay untouched).
 
