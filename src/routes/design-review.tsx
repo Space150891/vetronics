@@ -34,6 +34,8 @@ export const Route = createFileRoute("/design-review")({
   component: DesignReview,
 });
 
+const FrontDeskBoard = FrontDeskRoute.options.component!;
+
 /* A second router instance so "Current" renders the real Front Desk page untouched.
    defaultComponent bypasses AppShell (the outer shell already provides it), avoiding nesting. */
 const previewRouter = createRouter({
@@ -43,8 +45,6 @@ const previewRouter = createRouter({
   defaultComponent: FrontDeskBoard,
   defaultNotFoundComponent: FrontDeskBoard,
 });
-
-const FrontDeskBoard = FrontDeskRoute.options.component!;
 
 type View = "current" | "a" | "b";
 const VIEWS: { key: View; label: string }[] = [
