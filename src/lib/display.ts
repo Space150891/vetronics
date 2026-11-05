@@ -2,8 +2,11 @@
 export const CLINIC_LOCALE = "en-US";
 
 export function clinicDate(value: string, options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" }) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  const [year, month, day] = value.split("-").map(Number);
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const us = /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value);
+  if (!iso && !us) return value;
+  const parts = value.split(iso ? "-" : "/").map(Number);
+  const [year, month, day] = iso ? parts : [parts[2], parts[0], parts[1]];
   if (!year || !month || !day) return value;
   return new Date(year, month - 1, day).toLocaleDateString(CLINIC_LOCALE, options);
 }

@@ -19,7 +19,7 @@ export function WeekStrip({ selected, onSelect, summary }: { selected: string; o
   return (
     <div className="mb-2 flex items-stretch gap-2">
       <Button variant="outline" size="icon" className="h-auto self-center" aria-label="Previous week" onClick={() => onSelect(addDays(selected, -7))}><ChevronLeft /></Button>
-      <div className="grid min-w-0 flex-1 grid-cols-7 gap-1.5 overflow-x-auto">
+      <div className="grid min-w-0 flex-1 auto-cols-[74px] grid-flow-col gap-1.5 overflow-x-auto sm:auto-cols-auto sm:grid-flow-row sm:grid-cols-7">
         {days.map((d) => {
           const [y, m, day] = nums(d, "-");
           const dt = new Date(y, m - 1, day);
