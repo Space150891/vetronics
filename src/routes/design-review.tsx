@@ -1,4 +1,5 @@
 import { createFileRoute, createRouter, RouterProvider } from "@tanstack/react-router";
+import { QueryClient } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -33,7 +34,7 @@ export const Route = createFileRoute("/design-review")({
 });
 
 /* A second router instance so "Current" renders the real Front Desk untouched. */
-const previewRouter = createRouter({ routeTree, defaultPreload: false });
+const previewRouter = createRouter({ routeTree, defaultPreload: false, context: { queryClient: new QueryClient() } });
 
 type View = "current" | "a" | "b";
 const VIEWS: { key: View; label: string }[] = [
