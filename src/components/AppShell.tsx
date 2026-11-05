@@ -31,7 +31,7 @@ function Wordmark() {
   return (
     <div className="flex items-center gap-2.5">
       <BrandMark tile className="size-8" />
-      <span className="text-[19px] font-extrabold tracking-tight text-sidebar-accent-foreground">Vectronics</span>
+      <span className="text-[19px] font-extrabold tracking-tight text-sidebar-foreground">Vectronics</span>
     </div>
   );
 }
