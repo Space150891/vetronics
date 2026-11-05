@@ -44,6 +44,8 @@ const previewRouter = createRouter({
   defaultNotFoundComponent: FrontDeskBoard,
 });
 
+const FrontDeskBoard = FrontDeskRoute.options.component!;
+
 type View = "current" | "a" | "b";
 const VIEWS: { key: View; label: string }[] = [
   { key: "current", label: "Current" },
