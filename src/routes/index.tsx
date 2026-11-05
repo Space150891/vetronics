@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CalendarPlus, CalendarClock, Clock, Flag, LogIn, Plus, Receipt, Stethoscope, Undo2, UserX, XCircle, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CalendarPlus, CalendarClock, Clock, Flag, GripVertical, LogIn, Plus, Receipt, Stethoscope, Undo2, UserX, XCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge, Button, Drawer, DL, Field, StatusBadge, Textarea } from "@/components/kit";
 import { ProviderFilter } from "@/components/calendar";
 import { nums, CURRENT_USER, isoDate, patientById, providerById, type Appointment } from "@/lib/fixtures";
 import { INVOICES, INVOICE_TONE, usd } from "@/lib/patient-data";
-import { addNote, completeCheckout, finishVisit, markArrived, sendToProvider, setApptStatus, stageOf, undoStage, useStore, type Stage } from "@/lib/store";
+import { addNote, completeCheckout, finishVisit, markArrived, peekAppointments, sendToProvider, setApptStatus, stageOf, undoStage, useStore, type Stage } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { clinicDate } from "@/lib/display";
 
@@ -31,6 +31,9 @@ const COLUMNS: { key: BoardStage; title: string; sub: string }[] = [
   { key: "with_provider", title: "With provider", sub: "In the room now." },
   { key: "checkout", title: "Ready to check out", sub: "Finished. Settle the bill and book anything next." },
 ];
+/** Only the forward moves the existing workflow actions support — no backward or skipped stages. */
+const NEXT_STAGE: Record<BoardStage, BoardStage | null> = { expected: "waiting", waiting: "with_provider", with_provider: "checkout", checkout: null };
+const stageTitle = (s: BoardStage) => COLUMNS.find((c) => c.key === s)!.title;
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -57,6 +60,11 @@ function FrontDesk() {
   const [tab, setTab] = useState<BoardStage>("expected");
   const [openId, setOpenId] = useState<string | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
+  const [drag, setDrag] = useState<{ id: string; stage: BoardStage; x: number; y: number } | null>(null);
+  const [over, setOver] = useState<BoardStage | null>(null);
+  const [announce, setAnnounce] = useState("");
+  const dragRef = useRef(drag);
+  dragRef.current = drag;
 
   const byStage = useMemo(() => {
     const out: Record<BoardStage, Appointment[]> = { expected: [], waiting: [], with_provider: [], checkout: [] };
@@ -66,9 +74,66 @@ function FrontDesk() {
       .forEach((a) => { const s = stageOf(a); if (s !== "done") out[s].push(a); });
     return out;
   }, [appts, today, provider]);
+  const total = byStage.expected.length + byStage.waiting.length + byStage.with_provider.length + byStage.checkout.length;
 
   const open = appts.find((a) => a.id === openId) ?? null;
   const openCard = (id: string, el: HTMLElement) => { triggerRef.current = el; setOpenId(id); };
+
+  const startDrag = (e: React.PointerEvent, a: Appointment) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    const stage = stageOf(a);
+    if (stage === "done") return;
+    setDrag({ id: a.id, stage, x: e.clientX, y: e.clientY });
+  };
+
+  // Pointer-based drag: the handle starts it, window listeners track it, and the drop
+  // commits through the same store actions as the card buttons (never raw status writes).
+  const dragId = drag?.id ?? null;
+  useEffect(() => {
+    if (!dragId) return;
+    const targetAt = (x: number, y: number) => {
+      const el = document.elementFromPoint(x, y);
+      return (el?.closest?.("[data-stage]") as HTMLElement | null)?.dataset["stage"] as BoardStage | undefined;
+    };
+    const move = (e: PointerEvent) => {
+      setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
+      setOver(targetAt(e.clientX, e.clientY) ?? null);
+    };
+    const up = (e: PointerEvent) => {
+      const d = dragRef.current;
+      const target = targetAt(e.clientX, e.clientY);
+      setDrag(null);
+      setOver(null);
+      if (!d || !target || target === d.stage) return; // same-column drops never reorder
+      const a = peekAppointments().find((x) => x.id === d.id);
+      if (!a) return;
+      const name = patientById(a.patientId).name;
+      if (target !== NEXT_STAGE[d.stage]) {
+        toast.error(`Can't move ${name} from ${stageTitle(d.stage)} to ${stageTitle(target)}`);
+        return;
+      }
+      const ok =
+        target === "waiting" ? markArrived(a.id)
+        : target === "with_provider" ? sendToProvider(a.id)
+        : finishVisit(a.id);
+      if (ok) {
+        const msg = target === "waiting" ? `${name} checked in` : target === "with_provider" ? `${name} sent to ${providerById(a.providerId).name}` : `${name} ready for checkout`;
+        toast.success(msg);
+        setAnnounce(`${name} moved to ${stageTitle(target)}.`);
+      } else {
+        toast.error(`Couldn't move ${name} — use the button on the card instead`);
+      }
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, [dragId]);
 
   return (
     <div className="mx-auto max-w-[1600px]">
@@ -80,6 +145,7 @@ function FrontDesk() {
         <Link to="/patient-scheduling" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground focus-ring"><Plus className="size-4" aria-hidden /> Book appointment</Link>
       </div>
       <div className="mb-4"><ProviderFilter value={provider} onChange={setProvider} /></div>
+      <p className="mb-3 text-sm font-semibold" aria-live="polite">{total} {total === 1 ? "visit" : "visits"} on board</p>
 
       <div role="tablist" aria-label="Visit stages" className="mb-3 grid grid-cols-2 gap-1 rounded-lg border bg-card p-1 sm:grid-cols-4 lg:hidden">
         {COLUMNS.map((c) => (
@@ -91,24 +157,43 @@ function FrontDesk() {
       </div>
 
       <div className="relative grid gap-4 lg:grid-cols-4">
-        <span aria-hidden className="absolute left-0 right-0 top-[13px] hidden h-px bg-border lg:block" />
-        {COLUMNS.map((c, ci) => (
-          <section key={c.key} aria-labelledby={`col-${c.key}`} className={cn("min-w-0", tab !== c.key && "hidden lg:block")}>
-            <div className="mb-2 px-1">
-              <div className="relative grid grid-cols-[26px_minmax(0,1fr)_auto] items-center gap-2">
-                <span className="relative z-10 grid size-[26px] shrink-0 place-items-center rounded-full border-2 border-primary bg-card text-[11px] font-bold text-primary" aria-hidden>{ci + 1}</span>
-                <h2 id={`col-${c.key}`} className="text-[15px] font-bold">{c.title}</h2>
-                <span className="ml-auto text-sm tabular-nums text-muted-foreground" aria-label={`${byStage[c.key].length} visits`}>{byStage[c.key].length}</span>
+        <span aria-hidden className="absolute inset-x-2 top-0 hidden h-px bg-border lg:block" />
+        {COLUMNS.map((c) => {
+          const list = byStage[c.key];
+          const isTarget = drag !== null && NEXT_STAGE[drag.stage] === c.key;
+          return (
+            <section key={c.key} data-stage={c.key} aria-labelledby={`col-${c.key}`}
+              className={cn("min-w-0 rounded-lg pt-3 transition-colors", tab !== c.key && "hidden lg:block",
+                drag && drag.stage !== c.key && !isTarget && "opacity-60",
+                isTarget && "ring-2 ring-primary/40 bg-accent/30",
+                isTarget && over === c.key && "ring-primary bg-accent/50")}>
+              <div className="mb-2 px-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 id={`col-${c.key}`} className="text-[15px] font-bold">{c.title}</h2>
+                  <Badge tone="neutral" className="tabular-nums">{list.length} {list.length === 1 ? "visit" : "visits"}</Badge>
+                </div>
+                <p className="mt-1 min-h-8 text-xs text-muted-foreground">{c.sub}</p>
               </div>
-              <p className="mt-1 pl-[34px] text-xs text-muted-foreground">{c.sub}</p>
-            </div>
-            <ul className="space-y-2">
-              {byStage[c.key].length === 0 && <li className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">Nobody here</li>}
-              {byStage[c.key].map((a) => <VisitCard key={a.id} a={a} now={now} selected={openId === a.id} onOpen={openCard} />)}
-            </ul>
-          </section>
-        ))}
+              <ul className="min-h-10 space-y-2 px-1 pb-1">
+                {list.length === 0 && <li className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">Nobody here</li>}
+                {list.map((a) => <VisitCard key={a.id} a={a} now={now} selected={openId === a.id} dragging={drag?.id === a.id} onOpen={openCard} onDragStart={startDrag} />)}
+              </ul>
+            </section>
+          );
+        })}
       </div>
+
+      <p className="sr-only" role="status">{announce}</p>
+      {drag && (() => {
+        const a = appts.find((x) => x.id === drag.id);
+        if (!a) return null;
+        return (
+          <div aria-hidden className="pointer-events-none fixed z-50 w-52 -translate-x-1/2 -translate-y-8 rounded-lg border bg-card p-2.5 shadow-lg" style={{ left: drag.x, top: drag.y }}>
+            <p className="truncate text-sm font-bold">{patientById(a.patientId).name}</p>
+            <p className="text-xs text-muted-foreground">{fmtSlot(a.time)} · {a.type}</p>
+          </div>
+        );
+      })()}
 
       {open && <VisitDrawer a={open} now={now} onClose={() => setOpenId(null)} returnFocusRef={triggerRef} />}
     </div>
@@ -126,15 +211,24 @@ function PrimaryAction({ a, size = "sm" }: { a: Appointment; size?: "sm" | "md" 
   }
 }
 
-function VisitCard({ a, now, selected, onOpen }: { a: Appointment; now: number | null; selected: boolean; onOpen: (id: string, el: HTMLElement) => void }) {
+function VisitCard({ a, now, selected, dragging, onOpen, onDragStart }: { a: Appointment; now: number | null; selected: boolean; dragging: boolean; onOpen: (id: string, el: HTMLElement) => void; onDragStart: (e: React.PointerEvent, a: Appointment) => void }) {
   const p = patientById(a.patientId);
   const pr = providerById(a.providerId);
   const stage = stageOf(a);
   const wait = stage === "waiting" ? mins(a.arrivedAt, now) : null;
   const owed = stage === "checkout" ? balanceFor(a.patientId).reduce((n, i) => n + i.amount, 0) : 0;
   return (
-    <li className={cn("rounded-lg border bg-card p-3", selected && "border-primary ring-1 ring-primary")}>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+    <li className={cn("rounded-lg border bg-card p-3", selected && "border-primary ring-1 ring-primary", dragging && "opacity-50")}>
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
+        <button
+          type="button"
+          aria-label={`Drag ${p.name} to the next stage`}
+          title="Drag to the next stage"
+          onPointerDown={(e) => onDragStart(e, a)}
+          className="-ml-1 mt-0.5 cursor-grab touch-none rounded p-1 text-muted-foreground hover:bg-muted active:cursor-grabbing focus-ring"
+        >
+          <GripVertical className="size-4" aria-hidden />
+        </button>
         <button className="min-w-0 rounded text-left font-semibold text-primary hover:underline focus-ring" onClick={(e) => onOpen(a.id, e.currentTarget)}>
           <span className="block break-words text-[15px] font-bold leading-tight">{p.name}</span>
         </button>
