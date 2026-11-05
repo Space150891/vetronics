@@ -34,15 +34,16 @@ export const Route = createFileRoute("/design-review")({
 /* "Current" embeds the real Front Desk page in an iframe — fully isolated, zero coupling,
    and always shows the production screen exactly as it is. */
 
-type View = "current" | "a" | "b";
+type View = "applied" | "a" | "b" | "notes";
 const VIEWS: { key: View; label: string }[] = [
-  { key: "current", label: "Current" },
+  { key: "applied", label: "Applied — live portal" },
   { key: "a", label: "Concept A — Editorial Precision" },
-  { key: "b", label: "Concept B — Connected Care" },
+  { key: "b", label: "Concept B — Connected Care (selected)" },
+  { key: "notes", label: "Decisions & states" },
 ];
 
 function DesignReview() {
-  const [view, setView] = useState<View>("a");
+  const [view, setView] = useState<View>("applied");
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-40 flex flex-wrap items-center gap-3 border-b bg-card px-4 py-2.5">
@@ -63,13 +64,115 @@ function DesignReview() {
             </button>
           ))}
         </div>
-        <span className="ml-auto text-xs text-muted-foreground">Preview only — actions here never change demo data.</span>
+        <span className="ml-auto text-xs text-muted-foreground">Concept boards are inert — actions there never change demo data.</span>
       </div>
-      {view === "current" ? (
-        <iframe src="/" title="Current Front Desk (live)" className="h-[calc(100vh-53px)] w-full border-0" />
+      {view === "applied" ? (
+        <iframe src="/" title="Live portal with Connected Care applied" className="h-[calc(100vh-53px)] w-full border-0" />
+      ) : view === "notes" ? (
+        <DecisionsPanel />
       ) : (
         <ConceptBoard variant={view} />
       )}
+    </div>
+  );
+}
+
+/* ---------- Decisions, component states, open questions ---------- */
+const DECISIONS: [string, string][] = [
+  ["Palette", "Pale blue canvas (#F2F7FC) with white panels, vivid blue (#1267D6) for actions and active states, quiet teal (#147D85) as the secondary accent. Clinical status colours are unchanged — blue/teal never compete with warning or danger."],
+  ["Connected-node wayfinding", "The logo's node motif marks position: a ringed node on the active sidebar item, and numbered nodes joined by a hairline across the four Front Desk stages. It marks state and sequence only — never background decoration."],
+  ["Typography", "Source Sans 3 throughout, tabular numerals for times, counts and money so columns of figures align. Headings use tight tracking; body density is unchanged."],
+  ["Surfaces and density", "10px panels, 8px buttons, hairline borders and minimal elevation. Visit cards gained a top rule separating the action from the content, and times moved into tinted chips so they scan as a column."],
+  ["Sidebar", "The dark navy rail became a pale blue rail with a white active pill and node marker, matching the concept. Dark mode keeps a dark rail deliberately."],
+];
+
+const BEFORE_AFTER: [string, string, string][] = [
+  ["Shared frame", "Dark navy sidebar, solid blue active pill, Figtree.", "Pale blue sidebar, white active pill with a node dot on the rail edge, Source Sans 3."],
+  ["Front Desk", "Plain column titles with counts; floating cards; bare time text.", "Numbered stage nodes joined by a connecting line; time chips aligned right; actions separated by a top rule."],
+  ["Patient Scheduling", "Default tokens, rounded-xl strips.", "Same structure and rules; tokens, radii and selected-day ring now match the system."],
+  ["Patients & Visit Notes", "Selected row: faint accent wash.", "Selected row: stronger accent wash with a 3px primary inset bar; panel relationship unchanged."],
+];
+
+const COMPONENT_STATES: [string, string][] = [
+  ["Buttons", "Primary (blue), outline, ghost, link, danger; loading spinner; disabled-with-reason shows a tooltip explaining why."],
+  ["Fields", "Default, focus (2px blue ring), error (red border + role=alert message), disabled. Labels, hints and errors unchanged."],
+  ["Badges & statuses", "Six tones (info, success, warning, danger, teal, neutral); every status keeps its text label and dot icon — colour is never the only signal."],
+  ["Tabs & filters", "Segmented tabs with counts; selected tab is filled blue with white text."],
+  ["Tables", "Hover wash, keyboard focus ring with inset bar, selected row with primary inset bar."],
+  ["Dialogs & drawers", "White surfaces, hairline borders, soft elevation; focus returns to the triggering element on close."],
+  ["Empty states", "Dashed panel with icon, title and guidance — e.g. \"Nobody here\" on empty board columns."],
+];
+
+const OPEN_QUESTIONS: string[] = [
+  "Should the patient portal inherit the Connected Care palette, or keep its own calmer patient-facing look?",
+  "Staff-chat launcher and panel still use the old visual weight — restyle to match, or leave until messaging becomes real?",
+  "Mobile navigation is still a native select; a slide-over drawer would match the node wayfinding better but is a functional change.",
+  "Dark mode keeps a dark sidebar by choice — confirm that split is intended.",
+];
+
+function DecisionsPanel() {
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <h1 className="text-2xl font-bold tracking-tight">Connected Care — applied</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Concept B is now the portal's design system. This pass changed presentation only: tokens, fonts, navigation treatment and screen styling. No data, logic, routes or workflows were touched.
+      </p>
+
+      <section aria-labelledby="dr-ba" className="mt-8">
+        <h2 id="dr-ba" className="mb-3 text-[15px] font-bold">Before / after</h2>
+        <div className="overflow-x-auto rounded-lg border bg-card">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className="border-b bg-surface px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Screen</th>
+                <th className="border-b bg-surface px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Before</th>
+                <th className="border-b bg-surface px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">After</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BEFORE_AFTER.map(([s, b, aft]) => (
+                <tr key={s}>
+                  <td className="border-b px-3 py-2 align-top font-semibold">{s}</td>
+                  <td className="border-b px-3 py-2 align-top text-muted-foreground">{b}</td>
+                  <td className="border-b px-3 py-2 align-top">{aft}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">Compare live: "Applied" shows the new design; the Concept A and B boards preserve the exploration for reference.</p>
+      </section>
+
+      <section aria-labelledby="dr-dec" className="mt-8">
+        <h2 id="dr-dec" className="mb-3 text-[15px] font-bold">Design decisions</h2>
+        <dl className="space-y-3">
+          {DECISIONS.map(([k, v]) => (
+            <div key={k} className="rounded-lg border bg-card p-4">
+              <dt className="text-[13px] font-bold">{k}</dt>
+              <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section aria-labelledby="dr-states" className="mt-8">
+        <h2 id="dr-states" className="mb-3 text-[15px] font-bold">Component states</h2>
+        <dl className="space-y-3">
+          {COMPONENT_STATES.map(([k, v]) => (
+            <div key={k} className="rounded-lg border bg-card p-4">
+              <dt className="text-[13px] font-bold">{k}</dt>
+              <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section aria-labelledby="dr-open" className="mt-8 pb-16">
+        <h2 id="dr-open" className="mb-3 text-[15px] font-bold">Open questions</h2>
+        <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+          {OPEN_QUESTIONS.map((q) => <li key={q}>{q}</li>)}
+        </ul>
+      </section>
     </div>
   );
 }
