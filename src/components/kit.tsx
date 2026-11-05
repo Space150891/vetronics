@@ -116,7 +116,7 @@ export function Field({ label, htmlFor, error, hint, children }: { label: string
 
 /* ---------- Card ---------- */
 export function Card({ className, ...p }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-xl border bg-card text-card-foreground shadow-card", className)} {...p} />;
+  return <div className={cn("rounded-lg border bg-card text-card-foreground shadow-card", className)} {...p} />;
 }
 export function CardHeader({ title, sub, action }: { title: string; sub?: string | undefined; action?: React.ReactNode }) {
   return (

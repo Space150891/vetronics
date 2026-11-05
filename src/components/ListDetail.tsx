@@ -57,7 +57,7 @@ export function ListDetailPage<T extends { id: string }>({
                     aria-selected={sel?.id === r.id}
                     onClick={() => setSelId(r.id)}
                     onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setSelId(r.id))}
-                    className={cn("cursor-pointer outline-none transition-colors hover:bg-muted/60 focus-visible:bg-accent focus-visible:shadow-[inset_3px_0_0_var(--color-ring)]", sel?.id === r.id && "bg-accent/70 shadow-[inset_3px_0_0_var(--color-primary)]")}
+                    className={cn("cursor-pointer outline-none transition-colors hover:bg-muted/60 focus-visible:bg-accent focus-visible:shadow-[inset_3px_0_0_var(--color-ring)]", sel?.id === r.id && "bg-accent font-medium shadow-[inset_3px_0_0_var(--color-primary)]")}
                   >
                     {columns.map((c) => <Td key={c.label} className={c.className}>{c.render(r)}</Td>)}
                   </tr>

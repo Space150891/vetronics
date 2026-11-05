@@ -25,7 +25,7 @@ export function WeekStrip({ selected, onSelect, summary }: { selected: string; o
           const sel = d === selected;
           return (
             <button key={d} onClick={() => onSelect(d)} aria-pressed={sel} aria-label={longDate(d)}
-              className={cn("min-w-[84px] rounded-xl border px-2 py-2 text-center text-xs transition-colors focus-ring", sel ? "border-primary bg-card ring-2 ring-primary/25" : "border-transparent bg-surface hover:bg-muted")}>
+              className={cn("min-w-[84px] rounded-lg border px-2 py-2 text-center text-xs transition-colors focus-ring", sel ? "border-primary bg-card ring-2 ring-primary/30" : "border-transparent bg-surface hover:bg-muted")}>
               <span className="flex items-center justify-center gap-1 font-semibold text-foreground">
                 {dt.toLocaleDateString("en-GB", { weekday: "short" })}
                 {d === today && <span className="rounded bg-st-warning-bg px-1 text-[10px] font-bold text-st-warning">Today</span>}

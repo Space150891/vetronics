@@ -137,7 +137,7 @@ function VisitCard({ a, now, selected, onOpen }: { a: Appointment; now: number |
         <button className="min-w-0 rounded text-left font-semibold text-primary hover:underline focus-ring" onClick={(e) => onOpen(a.id, e.currentTarget)}>
           <span className="block truncate">{p.name}</span>
         </button>
-        <span className="shrink-0 text-sm font-semibold tabular-nums">{fmtSlot(a.time)}</span>
+        <span className="shrink-0 rounded-md bg-st-info-bg px-1.5 py-0.5 text-sm font-bold tabular-nums text-st-info">{fmtSlot(a.time)}</span>
       </div>
       <p className="truncate text-xs text-muted-foreground">{pr.name} · {a.type} · {a.room}</p>
       <div className="mt-1.5 flex flex-wrap gap-1">
@@ -146,7 +146,7 @@ function VisitCard({ a, now, selected, onOpen }: { a: Appointment; now: number |
         {owed > 0 && <Badge tone="warning">Balance {usd(owed)}</Badge>}
         {p.flags.map((f) => <Badge key={f} tone="neutral" icon={Flag} className="font-medium">{f}</Badge>)}
       </div>
-      <div className="mt-2.5 flex gap-2">
+      <div className="mt-2.5 flex gap-2 border-t pt-2.5">
         {stage === "checkout"
           ? <Button size="sm" icon={Receipt} onClick={(e) => onOpen(a.id, e.currentTarget)}>Open checkout</Button>
           : <PrimaryAction a={a} />}
