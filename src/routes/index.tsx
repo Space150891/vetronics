@@ -211,15 +211,24 @@ function PrimaryAction({ a, size = "sm" }: { a: Appointment; size?: "sm" | "md" 
   }
 }
 
-function VisitCard({ a, now, selected, onOpen }: { a: Appointment; now: number | null; selected: boolean; onOpen: (id: string, el: HTMLElement) => void }) {
+function VisitCard({ a, now, selected, dragging, onOpen, onDragStart }: { a: Appointment; now: number | null; selected: boolean; dragging: boolean; onOpen: (id: string, el: HTMLElement) => void; onDragStart: (e: React.PointerEvent, a: Appointment) => void }) {
   const p = patientById(a.patientId);
   const pr = providerById(a.providerId);
   const stage = stageOf(a);
   const wait = stage === "waiting" ? mins(a.arrivedAt, now) : null;
   const owed = stage === "checkout" ? balanceFor(a.patientId).reduce((n, i) => n + i.amount, 0) : 0;
   return (
-    <li className={cn("rounded-lg border bg-card p-3", selected && "border-primary ring-1 ring-primary")}>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+    <li className={cn("rounded-lg border bg-card p-3", selected && "border-primary ring-1 ring-primary", dragging && "opacity-50")}>
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
+        <button
+          type="button"
+          aria-label={`Drag ${p.name} to the next stage`}
+          title="Drag to the next stage"
+          onPointerDown={(e) => onDragStart(e, a)}
+          className="-ml-1 mt-0.5 cursor-grab touch-none rounded p-1 text-muted-foreground hover:bg-muted active:cursor-grabbing focus-ring"
+        >
+          <GripVertical className="size-4" aria-hidden />
+        </button>
         <button className="min-w-0 rounded text-left font-semibold text-primary hover:underline focus-ring" onClick={(e) => onOpen(a.id, e.currentTarget)}>
           <span className="block break-words text-[15px] font-bold leading-tight">{p.name}</span>
         </button>
