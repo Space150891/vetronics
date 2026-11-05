@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 import { NAV } from "@/components/AppShell";
-import { Route as FrontDeskRoute } from "./index";
 import { CLINIC, CURRENT_USER, PROVIDERS, isoDate, nums, patientById, providerById, type Appointment } from "@/lib/fixtures";
 import { INVOICES, usd } from "@/lib/patient-data";
 import { stageOf, useStore, type Stage } from "@/lib/store";
@@ -32,9 +31,8 @@ export const Route = createFileRoute("/design-review")({
   component: DesignReview,
 });
 
-/* "Current" renders the real Front Desk page component directly — the outer AppShell
-   already provides the chrome, and its Links resolve against the live router. */
-const FrontDeskBoard = FrontDeskRoute.options.component!;
+/* "Current" embeds the real Front Desk page in an iframe — fully isolated, zero coupling,
+   and always shows the production screen exactly as it is. */
 
 type View = "current" | "a" | "b";
 const VIEWS: { key: View; label: string }[] = [
@@ -67,7 +65,11 @@ function DesignReview() {
         </div>
         <span className="ml-auto text-xs text-muted-foreground">Preview only — actions here never change demo data.</span>
       </div>
-      {view === "current" ? <FrontDeskBoard /> : <ConceptBoard variant={view} />}
+      {view === "current" ? (
+        <iframe src="/" title="Current Front Desk (live)" className="h-[calc(100vh-53px)] w-full border-0" />
+      ) : (
+        <ConceptBoard variant={view} />
+      )}
     </div>
   );
 }
