@@ -1,10 +1,10 @@
 # Roadmap — Connected Care client evaluation
 
-- [ ] Refine Front Desk visit hierarchy without hiding critical information.
-- [ ] Compact Patient Scheduling controls and make short visits readable at their true duration.
-- [ ] Align Appointments summaries and refine patient records / visit history.
-- [ ] Unify appointment status presentation and clinic date display.
-- [ ] Verify desktop/tablet layout, keyboard focus, interactions and existing tests.
+- [x] Refine Front Desk visit hierarchy without hiding critical information.
+- [x] Compact Patient Scheduling controls and make short visits readable at their true duration.
+- [x] Align Appointments summaries and refine patient records / visit history.
+- [x] Unify appointment status presentation and clinic date display.
+- [x] Verify desktop/tablet layout, keyboard focus, interactions and existing tests (15 existing tests + date presentation test pass; note refresh, booking, check-in, patient dialog and navigation pass).
 
 ## Previous presentation pass
 
